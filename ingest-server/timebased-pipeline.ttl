@@ -1,0 +1,169 @@
+@prefix js: <https://w3id.org/conn/js#>.
+@prefix : <https://w3id.org/conn#>.
+@prefix owl: <http://www.w3.org/2002/07/owl#>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+@prefix tree: <https://w3id.org/tree#>.
+@prefix ex: <http://example.org/>.
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix verkeersmetingen: <https://data.vlaanderen.be/ns/verkeersmetingen#> .
+@prefix rdfl: <https://w3id.org/rdf-lens/ontology#>.
+
+<> owl:imports <./node_modules/@rdfc/js-runner/ontology.ttl>.
+<> owl:imports <./node_modules/@rdfc/js-runner/channels/file.ttl>.
+<> owl:imports <./node_modules/@rdfc/file-utils-processors-ts/processors.ttl>.
+<> owl:imports <./node_modules/@rdfc/sds-processors-ts/configs/sdsify.ttl>.
+<> owl:imports <./node_modules/@rdfc/sds-processors-ts/configs/bucketizer.ttl>.
+<> owl:imports <./node_modules/@rdfc/sds-storage-writer-ts/processor.ttl>.
+<> owl:imports <./node_modules/@rdfc/replication-processor-ts/processor.ttl>.
+<> owl:imports <./node_modules/@rdfc/buffer-processor-ts/processor.ttl>.
+<> owl:imports <./node_modules/@rdfc/log-processor-ts/processor.ttl>.
+
+#########################################
+# Channel definitions
+#########################################
+
+# Channel for js:GlobRead → js:Bucketize (metadata)
+<metadata/writer> a js:JsWriterChannel.
+<metadata/reader> a js:JsReaderChannel.
+[ ] a js:JsChannel;
+    :reader <metadata/reader>;
+    :writer <metadata/writer>.
+
+# Channel for js:Bucketize → js:Ingest (metadata)
+<metadata/bucketized/writer> a js:JsWriterChannel.
+<metadata/bucketized/reader> a js:JsReaderChannel.
+[ ] a js:JsChannel;
+    :reader <metadata/bucketized/reader>;
+    :writer <metadata/bucketized/writer>.
+
+
+# Channel for js:ReadReplication → js:Buffer
+<ldes-raw/reader> a js:JsReaderChannel.
+<ldes-raw/writer> a js:JsWriterChannel.
+[ ] a js:JsChannel;
+    :reader <ldes-raw/reader>;
+    :writer <ldes-raw/writer>.
+
+# Channel for js:Buffer → js:Sdsify
+<buffered/reader> a js:JsReaderChannel.
+<buffered/writer> a js:JsWriterChannel.
+[ ] a js:JsChannel;
+    :reader <buffered/reader>;
+    :writer <buffered/writer>.
+
+# Channel for js:Sdsify → js:Bucketize
+<sds/reader> a js:JsReaderChannel.
+<sds/writer> a js:JsWriterChannel.
+[ ] a js:JsChannel;
+    :reader <sds/reader>;
+    :writer <sds/writer>.
+
+<sds/logged/reader> a js:JsReaderChannel.
+<sds/logged/writer> a js:JsWriterChannel.
+[ ] a js:JsChannel;
+    :reader <sds/logged/reader>;
+    :writer <sds/logged/writer>.
+
+# Channel for js:Bucketize → js:Ingest
+<bucketized/writer> a js:JsWriterChannel.
+<bucketized/reader> a js:JsReaderChannel.
+[ ] a js:JsChannel;
+    :reader <bucketized/reader>;
+    :writer <bucketized/writer>.
+
+#########################################
+# Processor definitions
+#########################################
+
+# File reader channel for metadata input on js:Ingest
+[ ] a js:GlobRead;
+    js:glob <./metadata.ttl>;
+    js:output <metadata/writer>;
+    js:closeOnEnd "true"^^xsd:boolean.
+
+# Processor to read and stream out a replication of an on disk saved stream.
+[ ] a js:ReadReplication;
+    js:outgoing <ldes-raw/writer>;
+    js:savePath <./data/replication-data.json>.
+
+# Processor to buffer the data so that we can influence its throughput.
+[ ] a js:Buffer;
+    js:incoming <ldes-raw/reader>;
+    js:outgoing <buffered/writer>;
+    js:interval [
+                    a rdfl:EnvVariable;
+                    rdfl:envDefault 2000;
+                    rdfl:envKey "INTERVAL"
+                ];
+    js:amount [
+                  a rdfl:EnvVariable;
+                  rdfl:envDefault 100;
+                  rdfl:envKey "AMOUNT_PER_INTERVAL"
+              ];
+    js:minAmount [
+                     a rdfl:EnvVariable;
+                     rdfl:envDefault 100;
+                     rdfl:envKey "AMOUNT_PER_INTERVAL"
+                 ].
+
+# Processor to describe every entity as part of a SDS stream for further processing
+[ ] a js:Sdsify;
+    js:input <buffered/reader>;
+    js:output <sds/writer>;
+    js:stream ex:BenchmarkStream;
+    js:timestampPath prov:generatedAtTime;
+    js:typeFilter verkeersmetingen:Verkeersmeting;
+    js:shape """
+      @prefix sh: <http://www.w3.org/ns/shacl#>.
+      @prefix ex: <http://example.org/>.
+      @prefix verkeersmetingen: <https://data.vlaanderen.be/ns/verkeersmetingen#> .
+
+      [ ] a sh:NodeShape;
+          sh:targetClass verkeersmetingen:Verkeersmeting.
+   """.
+
+[ ] a js:Log;
+    js:incoming <sds/reader>;
+    js:level "debug";
+    js:label "sdsified";
+    js:outgoing <sds/logged/writer> .
+
+# Processor to bucketize the data
+[ ] a js:Bucketize;
+    js:channels [
+          js:dataInput <sds/logged/reader>;
+          js:dataOutput <bucketized/writer>;
+          js:metadataInput <metadata/reader>;
+          js:metadataOutput <metadata/bucketized/writer>;
+      ];
+    js:bucketizeStrategy ( [
+                               a tree:TimebasedFragmentation;
+                               tree:timestampPath prov:generatedAtTime;
+                               tree:maxSize [
+                                                a rdfl:EnvVariable;
+                                                rdfl:envDefault 100;
+                                                rdfl:envKey "PAGE_SIZE"
+                                            ];
+                               tree:k [
+                                          a rdfl:EnvVariable;
+                                          rdfl:envDefault 4;
+                                          rdfl:envKey "K_SPLIT"
+                                      ];
+                               tree:minBucketSpan [
+                                                      a rdfl:EnvVariable;
+                                                      rdfl:envDefault 3600;
+                                                      rdfl:envKey "MIN_BUCKET_SPAN"
+                                                  ];
+                           ]);
+    js:outputStreamId ex:BenchmarkStream.
+
+# Processor to persist the SDS stream into a MongoDB instance
+[ ] a js:Ingest;
+    js:dataInput <bucketized/reader>;
+    js:metadataInput <metadata/bucketized/reader>;
+    js:database [
+          js:url <mongodb://root:password@mongodb:27017/ldes?authSource=admin>;
+          js:metadata "METADATA";
+          js:data "DATA";
+          js:index "INDEX";
+      ].
