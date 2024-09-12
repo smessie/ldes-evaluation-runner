@@ -2,10 +2,11 @@
 
 ## Setup
 
-First, make sure to install the required dependencies by running:
+First, make sure to install the required dependencies and build the code by running:
 
 ```bash
 npm install
+npm run build
 ```
 
 Then, you can gather the data by running:
