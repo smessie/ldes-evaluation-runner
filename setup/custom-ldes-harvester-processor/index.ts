@@ -1,5 +1,5 @@
 import {Writer} from "@rdfc/js-runner";
-import {replicateLDES} from "ldes-client";
+import {replicateLDES, enhanced_fetch} from "ldes-client";
 import {DataFactory} from "rdf-data-factory";
 import {SDS, TREE} from "@treecg/types";
 import {Quad_Object} from "@rdfjs/types";
@@ -33,11 +33,13 @@ export function harvest(
     **************************************************************************/
    return async () => {
       console.log('Harvesting data');
+
+      const timestampTerm = namedNode("http://www.w3.org/ns/prov#generatedAtTime");
+      const path = pred(timestampTerm);
+
       let date = new Date(start);
       while (date < end) {
          // Configure ldes-client
-         const timestampTerm = namedNode("http://www.w3.org/ns/prov#generatedAtTime");
-         const path = pred(timestampTerm);
          const condition = new LeafCondition({
             relationType: namedNode(TREE.GreaterThanOrEqualToRelation),
             value: date.toISOString(),
@@ -50,6 +52,9 @@ export function harvest(
             url: url,
             polling: false,
             condition: condition,
+            fetch: enhanced_fetch({
+               safe: true,
+            }),
          });
 
          let count = 0;

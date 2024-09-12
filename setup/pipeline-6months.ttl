@@ -31,15 +31,15 @@
 # Processor to read member events from a LDES
 [ ] a js:LdesHarvester;
     js:outgoing <ldes/writer>;
-    js:url "https://telraam-api.net/ldes/observations/by-page";
+    js:url "https://telraam-api.net/ldes/observations/by-time";
     js:start "2024-03-01T00:00:00Z"^^xsd:dateTime;
     js:end "2024-09-01T00:00:00Z"^^xsd:dateTime;
     js:interval 3600000;
-    js:amountPerPage 25.
+    js:amountPerInterval 25.
 
 
 # Processor to write an LDES to disk for replication.
 [ ] a js:WriteReplication;
     js:incoming <ldes/reader>;
     js:append false;
-    js:savePath <./replication-data.json>.
+    js:savePath <./replication-data.txt>.
