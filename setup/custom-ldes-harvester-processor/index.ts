@@ -47,7 +47,7 @@ export function harvest(
             path: path,
             pathQuads: {entry: timestampTerm, quads: []}
          });
-         condition.range.add(new Date(date.getTime() + interval).toISOString(), TREE.LessThanRelation);
+         condition.range.add(new Date(date.getTime() + interval), TREE.LessThanRelation);
          const ldesClient = replicateLDES({
             url: url,
             polling: false,
@@ -58,28 +58,23 @@ export function harvest(
          });
 
          let count = 0;
-         const reader = ldesClient.stream().getReader();
-
-         let element = await reader.read();
-         while (element) {
-            if (element.value) {
+         for await (const element of ldesClient.stream()) {
+            if (element) {
                count++;
 
                const blank = df.blankNode();
-               const quads = element.value.quads.slice();
+               const quads = element.quads.slice();
                quads.push(
                   df.quad(blank, SDS.terms.stream, <Quad_Object>ldesClient.streamId!),
-                  df.quad(blank, SDS.terms.payload, <Quad_Object>element.value.id!),
+                  df.quad(blank, SDS.terms.payload, <Quad_Object>element.id!),
                );
 
                await outgoing.push(new NWriter().quadsToString(quads));
             }
 
             if (count >= amountPerInterval) {
-               await reader.cancel();
-               element = null;
-            } else {
-               element = await reader.read();
+               console.log(`Harvested ${count} elements for ${date.toISOString()} to ${new Date(date.getTime() + interval).toISOString()} with IDs like ${element.id?.value}`);
+               break;
             }
          }
 
