@@ -9,11 +9,11 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@rdfc/buffer-processor-ts": "^1.0.1",
+    "@rdfc/buffer-processor-ts": "^1.1.1",
     "@rdfc/file-utils-processors-ts": "^0.5.4",
     "@rdfc/js-runner": "^0.2.2",
     "@rdfc/log-processor-ts": "^1.0.0",
-    "@rdfc/replication-processor-ts": "^1.0.0",
+    "@rdfc/replication-processor-ts": "^1.1.1",
     "@rdfc/sds-processors-ts": "^0.6.0-alpha.3",
     "@rdfc/sds-storage-writer-ts": "^0.3.0-alpha.4",
     "ldes-client": "^0.0.10-alpha.10"

@@ -45,7 +45,8 @@ export function harvest(
             value: date.toISOString(),
             compareType: 'date',
             path: path,
-            pathQuads: {entry: timestampTerm, quads: []}
+            pathQuads: {entry: timestampTerm, quads: []},
+            defaultTimezone: 'Z',
          });
          condition.range.add(new Date(date.getTime() + interval), TREE.LessThanRelation);
          const ldesClient = replicateLDES({
@@ -55,6 +56,7 @@ export function harvest(
             fetch: enhanced_fetch({
                safe: true,
             }),
+            defaultTimezone: 'Z',
          });
 
          let count = 0;

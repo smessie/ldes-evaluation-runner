@@ -84,7 +84,7 @@
 # Processor to read and stream out a replication of an on disk saved stream.
 [ ] a js:ReadReplication;
     js:outgoing <ldes-raw/writer>;
-    js:savePath <./data/replication-data.json>.
+    js:savePath <./data/replication-data.txt>.
 
 # Processor to buffer the data so that we can influence its throughput.
 [ ] a js:Buffer;
