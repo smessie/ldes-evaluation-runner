@@ -52,7 +52,7 @@ services:
       - AMOUNT_PER_INTERVAL=${AMOUNT_PER_INTERVAL}
       - PAGE_SIZE=${PAGE_SIZE}
     volumes:
-      - ./setup/replication-data.json:/opt/pipeline/data/replication-data.json
+      - ./setup/replication-data.txt:/opt/pipeline/data/replication-data.txt
     logging:
       driver: "json-file"
       options:
