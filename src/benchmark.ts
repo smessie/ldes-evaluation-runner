@@ -1,5 +1,5 @@
 import type {ChildProcess} from 'node:child_process';
-import {execFile} from 'node:child_process';
+import {fork} from 'node:child_process';
 import pidusage from 'pidusage';
 import {cleanup} from "./setup";
 
@@ -12,16 +12,13 @@ export async function runBenchmarkIteration(file: string, config: any): Promise<
 
    let resultMembersCount = 0;
    let resultQuadsCount = 0;
-   const child = execFile('node', [file, ...args], (error, stdout, stderr) => {
-      if (error) {
-         throw error;
+   const child = fork(file, args);
+   child.on('message', (message) => {
+      if (typeof message === 'object' && 'resultMembers' in message) {
+         resultMembersCount = message.resultMembers as number;
       }
-      console.log(stdout);
-      if (stdout.includes('Result-Members=')) {
-         resultMembersCount = parseInt(stdout.split('Result-Members=')[1].split('\n')[0]);
-      }
-      if (stdout.includes('Result-Quads=')) {
-         resultQuadsCount = parseInt(stdout.split('Result-Quads=')[1].split('\n')[0]);
+      if (typeof message === 'object' && 'resultQuads' in message) {
+         resultQuadsCount = message.resultQuads as number;
       }
    });
 

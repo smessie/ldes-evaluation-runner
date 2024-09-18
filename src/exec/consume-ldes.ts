@@ -1,4 +1,4 @@
-import {replicateLDES} from "ldes-client";
+import {enhanced_fetch, replicateLDES} from "ldes-client";
 
 const expectedCount = parseInt(process.argv[2]) || 1000;
 const pollInterval = parseInt(process.argv[3]) || 200;
@@ -7,6 +7,9 @@ const ldesClient = replicateLDES({
    url: "http://localhost:3000/ldes/default",
    polling: true,
    pollInterval: pollInterval,
+   fetch: enhanced_fetch({
+      safe: true,
+   }),
 });
 
 console.log(`Expecting ${expectedCount} elements`);
@@ -14,25 +17,22 @@ console.log(`Expecting ${expectedCount} elements`);
 let count = 0;
 let countQuads = 0;
 
-const reader = ldesClient.stream().getReader();
-
-let element = await reader.read();
-while (element) {
-   if (element.value) {
+for await (const element of ldesClient.stream()) {
+   if (element) {
       count++;
-      countQuads += element.value.quads.length;
+      countQuads += element.quads.length;
       if (count % 1000 === 0) {
-         console.log(`${count} with ${element.value.quads.length} quads`);
+         console.log(`${count} with ${element.quads.length} quads`);
       }
    }
 
    if (count >= expectedCount) {
-      await reader.cancel();
-      element = null;
-   } else {
-      element = await reader.read();
+      break;
    }
 }
 
-console.log(`Result-Members=${count}`);
-console.log(`Result-Quads=${countQuads}`);
+if (process.send) {
+   process.send({resultMembers: count, resultQuads: countQuads});
+} else {
+   console.log(`No process.send found. Result: ${count} elements with ${countQuads} quads`);
+}
