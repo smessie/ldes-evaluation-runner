@@ -2,6 +2,7 @@ import type {ChildProcess} from 'node:child_process';
 import {fork} from 'node:child_process';
 import pidusage from 'pidusage';
 import {cleanup} from "./setup";
+import {v2 as compose} from '@smessie/docker-compose';
 
 export async function runBenchmarkIteration(file: string, config: any): Promise<BenchmarkResult> {
    // Start the child process executing the code we want to benchmark
@@ -26,7 +27,7 @@ export async function runBenchmarkIteration(file: string, config: any): Promise<
    stopChildProcessOnExit(child);
 
    // Start collecting metrics
-   const metrics = collectMetrics(child);
+   const metrics = collectMetrics(child, 1000);
 
    // Wait for the child process to finish
    const promise: Promise<Metrics> = new Promise((resolve, reject): void => {
@@ -38,16 +39,13 @@ export async function runBenchmarkIteration(file: string, config: any): Promise<
    });
    const metricsResult = await promise;
 
-   const avgCpu = metricsResult.stats.reduce((acc, val) => acc + val.cpu, 0) / metricsResult.stats.length;
-   const avgMemory = metricsResult.stats.reduce((acc, val) => acc + val.memory, 0) / metricsResult.stats.length;
-   const maxCpu = metricsResult.stats.reduce((acc, val) => Math.max(acc, val.cpu), 0);
-   const maxMemory = metricsResult.stats.reduce((acc, val) => Math.max(acc, val.memory), 0);
-   const clientLoad: Load = {avgCpu, avgMemory, maxCpu, maxMemory};
+   const clientLoad: Load = statsToLoad(metricsResult.clientStats);
+   const serverLoad: Load = statsToLoad(metricsResult.serverStats);
 
    if (config.type === 'UPDATING_LDES') {
-      return new BenchmarkResult(metricsResult.time, clientLoad, resultMembersCount, resultMembersCount / metricsResult.time, resultQuadsCount, resultQuadsCount / metricsResult.time, config.pollInterval);
+      return new BenchmarkResult(metricsResult.time, clientLoad, serverLoad, metricsResult.clientStats, metricsResult.serverStats, resultMembersCount, resultMembersCount / metricsResult.time, resultQuadsCount, resultQuadsCount / metricsResult.time, config.pollInterval);
    } else {
-      return new BenchmarkResult(metricsResult.time, clientLoad, undefined, undefined, undefined, undefined, undefined);
+      return new BenchmarkResult(metricsResult.time, clientLoad, serverLoad, metricsResult.clientStats, metricsResult.serverStats, undefined, undefined, undefined, undefined, undefined);
    }
 }
 
@@ -57,10 +55,22 @@ function collectMetrics(child: ChildProcess, intervalMs: number = 100): () => Me
    }
 
    // Collect cpu and memory metrics every intervalMs milliseconds
-   const stats: { cpu: number, memory: number }[] = [];
+   const clientStats: { cpu: number, memory: number }[] = [];
+   const serverStats: { cpu: number, memory: number, networkInput: number, networkOutput: number }[] = [];
    const interval = setInterval(async () => {
-      const stat = await pidusage(child.pid!);
-      stats.push({cpu: stat.cpu, memory: stat.memory});
+      try {
+         const clientStat = await pidusage(child.pid!);
+         clientStats.push({cpu: clientStat.cpu, memory: clientStat.memory});
+
+         const serverStat: compose.DockerComposeStatsResult = await compose.stats('ldes-server');
+         serverStats.push({
+            cpu: parseFloat(serverStat.CPUPerc.replace('%', '')),
+            memory: readableFormatToBytes(serverStat.MemUsage.split('/')[0].trim()),
+            networkInput: readableFormatToBytes(serverStat.NetIO.split('/')[0].trim()),
+            networkOutput: readableFormatToBytes(serverStat.NetIO.split('/')[1].trim()),
+         });
+      } catch (_) {
+      }
    }, intervalMs);
 
    // Start a timer to measure the total time
@@ -70,7 +80,7 @@ function collectMetrics(child: ChildProcess, intervalMs: number = 100): () => Me
    return () => {
       const hrEnd = process.hrtime(hrStart);
       clearInterval(interval);
-      return {time: hrEnd[0] + hrEnd[1] / 1_000, stats: stats};
+      return {time: hrEnd[0] + hrEnd[1] / 1_000, clientStats: clientStats, serverStats: serverStats};
    }
 }
 
@@ -94,18 +104,73 @@ function stopChildProcessOnExit(child: ChildProcess): void {
    process.on('uncaughtException', callOnExit);
 }
 
+function readableFormatToBytes(value: string): number {
+   const match = value.match(/^([0-9.]+)([A-z]+)$/);
+   if (!match) {
+      throw new Error(`Invalid value: ${value}`);
+   }
+
+   const number = parseFloat(match[1]);
+   switch (match[2]) {
+      case 'B':
+         return number;
+      case 'KiB':
+         return number * 1024;
+      case 'MiB':
+         return number * 1024 * 1024;
+      case 'GiB':
+         return number * 1024 * 1024 * 1024;
+      case 'TiB':
+         return number * 1024 * 1024 * 1024 * 1024;
+      case 'KB':
+         return number * 1000;
+      case 'MB':
+         return number * 1000 * 1000;
+      case 'GB':
+         return number * 1000 * 1000 * 1000;
+      case 'TB':
+         return number * 1000 * 1000 * 1000 * 1000;
+      default:
+         throw new Error(`Invalid unit: ${match[2]}`);
+   }
+}
+
+function statsToLoad(stats: { cpu: number, memory: number, networkInput?: number, networkOutput?: number }[]): Load {
+   const avgCpu = stats.reduce((acc, val) => acc + val.cpu, 0) / stats.length;
+   const avgMemory = stats.reduce((acc, val) => acc + val.memory, 0) / stats.length;
+   const maxCpu = stats.reduce((acc, val) => Math.max(acc, val.cpu), 0);
+   const maxMemory = stats.reduce((acc, val) => Math.max(acc, val.memory), 0);
+   const networkInput = stats[stats.length - 1].networkInput;
+   const networkOutput = stats[stats.length - 1].networkOutput;
+   return {avgCpu, avgMemory, maxCpu, maxMemory, networkInput: networkInput, networkOutput: networkOutput};
+}
+
 export class BenchmarkResult {
    public readonly time: number;
    public readonly clientLoad: Load;
+   public readonly serverLoad: Load;
+   public readonly clientStats?: { cpu: number, memory: number }[];
+   public readonly serverStats?: { cpu: number, memory: number, networkInput: number, networkOutput: number }[];
    public readonly membersCount?: number;
    public readonly membersThroughput?: number;
    public readonly quadsCount?: number;
    public readonly quadsThroughput?: number;
    public readonly pollInterval?: number;
 
-   constructor(time: number, clientLoad: Load, membersCount?: number, membersThroughput?: number, quadsCount?: number, quadsThroughput?: number, pollInterval?: number) {
+   constructor(time: number, clientLoad: Load, serverLoad: Load, clientStats: {
+      cpu: number,
+      memory: number
+   }[], serverStats: {
+      cpu: number,
+      memory: number,
+      networkInput: number,
+      networkOutput: number
+   }[], membersCount?: number, membersThroughput?: number, quadsCount?: number, quadsThroughput?: number, pollInterval?: number) {
       this.time = time;
       this.clientLoad = clientLoad;
+      this.serverLoad = serverLoad;
+      this.clientStats = clientStats;
+      this.serverStats = serverStats
       this.membersCount = membersCount;
       this.membersThroughput = membersThroughput;
       this.quadsCount = quadsCount;
@@ -114,6 +179,17 @@ export class BenchmarkResult {
    }
 }
 
-type Metrics = { time: number, stats: { cpu: number, memory: number }[] };
+type Metrics = {
+   time: number,
+   clientStats: { cpu: number, memory: number }[],
+   serverStats: { cpu: number, memory: number, networkInput: number, networkOutput: number }[]
+};
 
-export type Load = { avgCpu: number, avgMemory: number, maxCpu: number, maxMemory: number };
+export type Load = {
+   avgCpu: number,
+   avgMemory: number,
+   maxCpu: number,
+   maxMemory: number,
+   networkInput?: number,
+   networkOutput?: number
+};

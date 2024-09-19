@@ -1,4 +1,4 @@
-import {v2 as compose} from 'docker-compose'
+import {v2 as compose} from '@smessie/docker-compose';
 import path from 'path';
 import {fileURLToPath} from 'url';
 
