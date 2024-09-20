@@ -41,11 +41,12 @@ export async function runBenchmarkIteration(file: string, config: any): Promise<
 
    const clientLoad: Load = statsToLoad(metricsResult.clientStats);
    const serverLoad: Load = statsToLoad(metricsResult.serverStats);
+   const proxyLoad: Load = statsToLoad(metricsResult.proxyStats);
 
    if (config.type === 'UPDATING_LDES') {
-      return new BenchmarkResult(metricsResult.time, clientLoad, serverLoad, metricsResult.clientStats, metricsResult.serverStats, resultMembersCount, resultMembersCount / metricsResult.time, resultQuadsCount, resultQuadsCount / metricsResult.time, config.pollInterval);
+      return new BenchmarkResult(metricsResult.time, clientLoad, serverLoad, proxyLoad, metricsResult.clientStats, metricsResult.serverStats, metricsResult.proxyStats, resultMembersCount, resultMembersCount / metricsResult.time, resultQuadsCount, resultQuadsCount / metricsResult.time, config.pollInterval);
    } else {
-      return new BenchmarkResult(metricsResult.time, clientLoad, serverLoad, metricsResult.clientStats, metricsResult.serverStats, undefined, undefined, undefined, undefined, undefined);
+      return new BenchmarkResult(metricsResult.time, clientLoad, serverLoad, proxyLoad, metricsResult.clientStats, metricsResult.serverStats, metricsResult.proxyStats, undefined, undefined, undefined, undefined, undefined);
    }
 }
 
@@ -57,6 +58,7 @@ function collectMetrics(child: ChildProcess, intervalMs: number = 100): () => Me
    // Collect cpu and memory metrics every intervalMs milliseconds
    const clientStats: { cpu: number, memory: number }[] = [];
    const serverStats: { cpu: number, memory: number, networkInput: number, networkOutput: number }[] = [];
+   const proxyStats: { cpu: number, memory: number, networkInput: number, networkOutput: number }[] = [];
    const interval = setInterval(async () => {
       try {
          const clientStat = await pidusage(child.pid!);
@@ -69,6 +71,14 @@ function collectMetrics(child: ChildProcess, intervalMs: number = 100): () => Me
             networkInput: readableFormatToBytes(serverStat.NetIO.split('/')[0].trim()),
             networkOutput: readableFormatToBytes(serverStat.NetIO.split('/')[1].trim()),
          });
+
+         const proxyStat: compose.DockerComposeStatsResult = await compose.stats('nginx');
+         proxyStats.push({
+            cpu: parseFloat(proxyStat.CPUPerc.replace('%', '')),
+            memory: readableFormatToBytes(proxyStat.MemUsage.split('/')[0].trim()),
+            networkInput: readableFormatToBytes(proxyStat.NetIO.split('/')[0].trim()),
+            networkOutput: readableFormatToBytes(proxyStat.NetIO.split('/')[1].trim()),
+         });
       } catch (_) {
       }
    }, intervalMs);
@@ -80,7 +90,12 @@ function collectMetrics(child: ChildProcess, intervalMs: number = 100): () => Me
    return () => {
       const hrEnd = process.hrtime(hrStart);
       clearInterval(interval);
-      return {time: hrEnd[0] + hrEnd[1] / 1_000, clientStats: clientStats, serverStats: serverStats};
+      return {
+         time: hrEnd[0] + hrEnd[1] / 1_000,
+         clientStats: clientStats,
+         serverStats: serverStats,
+         proxyStats: proxyStats
+      };
    }
 }
 
@@ -149,18 +164,25 @@ export class BenchmarkResult {
    public readonly time: number;
    public readonly clientLoad: Load;
    public readonly serverLoad: Load;
+   public readonly proxyLoad: Load;
    public readonly clientStats?: { cpu: number, memory: number }[];
    public readonly serverStats?: { cpu: number, memory: number, networkInput: number, networkOutput: number }[];
+   public readonly proxyStats?: { cpu: number, memory: number, networkInput: number, networkOutput: number }[];
    public readonly membersCount?: number;
    public readonly membersThroughput?: number;
    public readonly quadsCount?: number;
    public readonly quadsThroughput?: number;
    public readonly pollInterval?: number;
 
-   constructor(time: number, clientLoad: Load, serverLoad: Load, clientStats: {
+   constructor(time: number, clientLoad: Load, serverLoad: Load, proxyLoad: Load, clientStats: {
       cpu: number,
       memory: number
    }[], serverStats: {
+      cpu: number,
+      memory: number,
+      networkInput: number,
+      networkOutput: number
+   }[], proxyStats: {
       cpu: number,
       memory: number,
       networkInput: number,
@@ -169,8 +191,10 @@ export class BenchmarkResult {
       this.time = time;
       this.clientLoad = clientLoad;
       this.serverLoad = serverLoad;
+      this.proxyLoad = proxyLoad;
       this.clientStats = clientStats;
       this.serverStats = serverStats
+      this.proxyStats = proxyStats;
       this.membersCount = membersCount;
       this.membersThroughput = membersThroughput;
       this.quadsCount = quadsCount;
@@ -182,7 +206,8 @@ export class BenchmarkResult {
 type Metrics = {
    time: number,
    clientStats: { cpu: number, memory: number }[],
-   serverStats: { cpu: number, memory: number, networkInput: number, networkOutput: number }[]
+   serverStats: { cpu: number, memory: number, networkInput: number, networkOutput: number }[],
+   proxyStats: { cpu: number, memory: number, networkInput: number, networkOutput: number }[],
 };
 
 export type Load = {

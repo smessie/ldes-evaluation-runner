@@ -17,7 +17,7 @@ MAX=100000 npx js-runner setup/pipeline.ttl
 npx js-runner setup/pipeline-6months.ttl
 ```
 
-With the `MAX` environment variable you can specify the amount of triples to download. The default is 100000.
+With the `MAX` environment variable you can specify the amount of triples to download. The default for `setup/pipeline.ttl` is 100000.
 To download the full LDES, set `MAX` to `0`.
 
 
@@ -38,6 +38,7 @@ The following variables can be set:
 - `EXPECTED_AMOUNT`: In the case of `UPDATING_LDES`. The expected amount of members in the LDES after the benchmark.
   Used to end the benchmark.
 - `POLL_INTERVAL`: In the case of `UPDATING_LDES`. The poll interval used by the ldes-client during the benchmark.
+- `NGINX_CONFIG`: The path to the nginx configuration file to use.
 
 Preconfigured `.env` files can be found in the `env` directory.
 

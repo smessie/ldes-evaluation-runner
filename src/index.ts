@@ -41,9 +41,14 @@ async function main() {
       const result = await runBenchmarkIteration(execFile, config);
       results.push(result);
 
-      console.log(`Iteration ${i + 1}: ${result.membersCount} members in ${result.time}s (throughput: ${result.membersThroughput} members/s), ${result.quadsCount} quads in ${result.time}s (throughput: ${result.quadsThroughput} quads/s), `
-         + `with client's avg ${result.clientLoad.avgCpu}% CPU and ${result.clientLoad.avgMemory / 1024 / 1024}MiB memory and max ${result.clientLoad.maxCpu}% CPU and ${result.clientLoad.maxMemory / 1024 / 1024}MiB memory`
-         + (result.serverLoad ? ` and server's avg ${result.serverLoad.avgCpu}% CPU and ${result.serverLoad.avgMemory / 1024 / 1024}MiB memory and max ${result.serverLoad.maxCpu}% CPU and ${result.serverLoad.maxMemory / 1024 / 1024}MiB memory and network input ${result.serverLoad.networkInput}MB and network output ${result.serverLoad.networkOutput}MB` : ''));
+      console.log(`Iteration ${i + 1}: ${result.membersCount} members in ${result.time}s (throughput: ${result.membersThroughput} members/s), ${result.quadsCount} quads in ${result.time}s (throughput: ${result.quadsThroughput} quads/s)`);
+      console.log(`Client: avg ${result.clientLoad.avgCpu}% CPU and ${result.clientLoad.avgMemory / 1024 / 1024}MiB memory and max ${result.clientLoad.maxCpu}% CPU and ${result.clientLoad.maxMemory / 1024 / 1024}MiB memory`);
+      if (result.serverLoad) {
+         console.log(`Server: avg ${result.serverLoad.avgCpu}% CPU and ${result.serverLoad.avgMemory / 1024 / 1024}MiB memory and max ${result.serverLoad.maxCpu}% CPU and ${result.serverLoad.maxMemory / 1024 / 1024}MiB memory and network input ${result.serverLoad.networkInput}MB and network output ${result.serverLoad.networkOutput}MB`);
+      }
+      if (result.proxyLoad) {
+         console.log(`Proxy: avg ${result.proxyLoad.avgCpu}% CPU and ${result.proxyLoad.avgMemory / 1024 / 1024}MiB memory and max ${result.proxyLoad.maxCpu}% CPU and ${result.proxyLoad.maxMemory / 1024 / 1024}MiB memory and network input ${result.proxyLoad.networkInput}MB and network output ${result.proxyLoad.networkOutput}MB`);
+      }
 
       // Cleanup the services
       await cleanup();
@@ -52,7 +57,9 @@ async function main() {
    console.log("\nResults:");
    for (const [i, result] of results.entries()) {
       console.log(`${i + 1}, ${result.time}s, ${result.membersCount}, ${result.membersThroughput} members/s, ${result.quadsCount}, ${result.quadsThroughput} members/s, ${result.clientLoad.avgCpu}%, ${result.clientLoad.avgMemory / 1024 / 1024}MiB, ${result.clientLoad.maxCpu}%, ${result.clientLoad.maxMemory / 1024 / 1024}MiB`
-         + (result.serverLoad ? `, ${result.serverLoad.avgCpu}%, ${result.serverLoad.avgMemory / 1024 / 1024}MiB, ${result.serverLoad.maxCpu}%, ${result.serverLoad.maxMemory / 1024 / 1024}MiB, ${result.serverLoad.networkInput}MB, ${result.serverLoad.networkOutput}MB` : ''));
+         + (result.serverLoad ? `, ${result.serverLoad.avgCpu}%, ${result.serverLoad.avgMemory / 1024 / 1024}MiB, ${result.serverLoad.maxCpu}%, ${result.serverLoad.maxMemory / 1024 / 1024}MiB, ${result.serverLoad.networkInput}MB, ${result.serverLoad.networkOutput}MB` : '')
+         + (result.proxyLoad ? `, ${result.proxyLoad.avgCpu}%, ${result.proxyLoad.avgMemory / 1024 / 1024}MiB, ${result.proxyLoad.maxCpu}%, ${result.proxyLoad.maxMemory / 1024 / 1024}MiB, ${result.proxyLoad.networkInput}MB, ${result.proxyLoad.networkOutput}MB` : '')
+      );
    }
 
    // Write the results to the output file

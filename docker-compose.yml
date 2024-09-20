@@ -23,8 +23,6 @@ services:
   ldes-server:
     container_name: ldes-server
     build: ./ldes-server
-    ports:
-      - 3000:3000
     restart: always
     command: -b http://localhost:3000
     healthcheck:
@@ -42,6 +40,25 @@ services:
       - ldes
     depends_on:
       - mongodb
+  nginx:
+    container_name: nginx
+    image: nginx:alpine
+    restart: always
+    ports:
+      - 3000:80
+    volumes:
+      - ${NGINX_CONFIG:-./nginx/configs/default.conf}:/etc/nginx/nginx.conf
+      - ./nginx/ldes-server.conf:/etc/nginx/conf.d/default.conf
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - ldes
+    depends_on:
+      ldes-server:
+        condition: service_healthy
   ingest-server:
     container_name: ingest-server
     build: ./ingest-server
@@ -63,6 +80,8 @@ services:
     depends_on:
       ldes-server:
         condition: service_healthy
+      nginx:
+        condition: service_started
 
 networks:
   ldes:
