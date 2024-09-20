@@ -91,7 +91,7 @@ function collectMetrics(child: ChildProcess, intervalMs: number = 100): () => Me
       const hrEnd = process.hrtime(hrStart);
       clearInterval(interval);
       return {
-         time: hrEnd[0] + hrEnd[1] / 1_000,
+         time: hrEnd[0] + hrEnd[1] / 1_000_000_000,
          clientStats: clientStats,
          serverStats: serverStats,
          proxyStats: proxyStats
@@ -161,7 +161,7 @@ function statsToLoad(stats: { cpu: number, memory: number, networkInput?: number
 }
 
 export class BenchmarkResult {
-   public readonly time: number;
+   public readonly time: number;  // in seconds
    public readonly clientLoad: Load;
    public readonly serverLoad: Load;
    public readonly proxyLoad: Load;
