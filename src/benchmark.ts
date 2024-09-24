@@ -182,8 +182,8 @@ function statsToLoad(stats: { cpu: number; memory: number; networkInput?: number
     const maxMemory = stats.reduce((acc, val) => Math.max(acc, val.memory), 0);
     const meanCpu = mean(stats.map((stat) => stat.cpu));
     const meanMemory = mean(stats.map((stat) => stat.memory));
-    const networkInput = stats[stats.length - 1].networkInput;
-    const networkOutput = stats[stats.length - 1].networkOutput;
+    const networkInput = (stats[stats.length - 1].networkInput || 0) - (stats[0].networkInput || 0);
+    const networkOutput = (stats[stats.length - 1].networkOutput || 0) - (stats[0].networkOutput || 0);
     return { avgCpu, avgMemory, maxCpu, maxMemory, meanCpu, meanMemory, networkInput: networkInput, networkOutput: networkOutput };
 }
 
