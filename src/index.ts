@@ -1,4 +1,4 @@
-import { awaitOnline, cleanup, setup } from "./setup";
+import { awaitMemberCount, awaitOnline, cleanup, setup } from "./setup";
 import { runBenchmarkIteration } from "./benchmark";
 import dotenv from "dotenv";
 import jsonfile from "jsonfile";
@@ -21,7 +21,7 @@ async function main() {
     const iterations = parseInt(process.env.ITERATIONS || "");
     const benchmarkType = process.env.TYPE || "";
     const config: any = { type: benchmarkType };
-    if (benchmarkType === "UPDATING_LDES") {
+    if (benchmarkType === "UPDATING_LDES" || benchmarkType === "STATIC_LDES") {
         checkEnvVars(["EXPECTED_COUNT", "POLL_INTERVAL"]);
         config.expectedCount = parseInt(process.env.EXPECTED_COUNT || "");
         config.pollInterval = parseInt(process.env.POLL_INTERVAL || "");
@@ -35,6 +35,12 @@ async function main() {
 
         // Wait for the services to be online
         await awaitOnline();
+
+        if (benchmarkType === "STATIC_LDES") {
+            // Wait for the LDES to contain the expected number of members
+            console.log(`Waiting for the LDES to contain ${config.expectedCount} members`);
+            await awaitMemberCount(config.expectedCount);
+        }
 
         // Run the benchmark
         console.log(`Running benchmark iteration ${i + 1}`);

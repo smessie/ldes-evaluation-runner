@@ -1,6 +1,7 @@
 import { v2 as compose } from "@smessie/docker-compose";
 import path from "path";
 import { fileURLToPath } from "url";
+import { enhanced_fetch, replicateLDES } from "ldes-client";
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
@@ -23,6 +24,29 @@ async function checkIfOnline() {
         return response.ok;
     } catch (_) {
         return false;
+    }
+}
+
+export async function awaitMemberCount(expectedCount: number) {
+    let count = 0;
+
+    const ldesClient = replicateLDES({
+        url: "http://localhost:3000/ldes/default",
+        polling: true,
+        pollInterval: 200,
+        fetch: enhanced_fetch({
+            safe: true,
+        }),
+    });
+
+    for await (const element of ldesClient.stream()) {
+        if (element) {
+            count++;
+        }
+
+        if (count >= expectedCount) {
+            break;
+        }
     }
 }
 

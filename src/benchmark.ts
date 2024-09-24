@@ -7,7 +7,7 @@ import { v2 as compose } from "@smessie/docker-compose";
 export async function runBenchmarkIteration(file: string, config: any): Promise<BenchmarkResult> {
     // Start the child process executing the code we want to benchmark
     let args: string[] = [];
-    if (config.type === "UPDATING_LDES") {
+    if (config.type === "UPDATING_LDES" || config.type === "STATIC_LDES") {
         args = [config.expectedCount.toString(), config.pollInterval.toString()];
     }
 
@@ -43,7 +43,7 @@ export async function runBenchmarkIteration(file: string, config: any): Promise<
     const serverLoad: Load = statsToLoad(metricsResult.serverStats);
     const proxyLoad: Load = statsToLoad(metricsResult.proxyStats);
 
-    if (config.type === "UPDATING_LDES") {
+    if (config.type === "UPDATING_LDES" || config.type === "STATIC_LDES") {
         return new BenchmarkResult(
             metricsResult.time,
             clientLoad,
