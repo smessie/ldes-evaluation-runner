@@ -42,7 +42,7 @@ services:
       - mongodb
   nginx:
     container_name: nginx
-    image: nginx:alpine
+    image: fholzer/nginx-brotli:v1.26.2
     restart: always
     ports:
       - 3000:80
