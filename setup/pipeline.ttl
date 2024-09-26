@@ -38,7 +38,7 @@
 [ ] a js:WriteReplication;
     js:incoming <ldes/reader>;
     js:append false;
-    js:savePath <./replication-data.json>;
+    js:savePath <./replication-data.txt>;
     js:max [
                a rdfl:EnvVariable;
                rdfl:envDefault 100000;
