@@ -14,4 +14,4 @@ RUN npm ci
 EXPOSE 3000
 
 # Set command run by the container
-ENTRYPOINT [ "npx", "@solid/community-server", "-c", "./config-ldes.json" ]
+ENTRYPOINT [ "node", "index.js", "-c", "./config-ldes.json" ]

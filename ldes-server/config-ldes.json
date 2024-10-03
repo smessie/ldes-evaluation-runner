@@ -82,7 +82,7 @@
                   "@type": "PrefixView",
                   "prefix": "default",
                   "view": {
-                    "@type": "MongoSDSView",
+                    "@type": "SDSView",
                     "descriptionId": "http://localhost:3000/ldes/#timestampFragmentation",
                     "streamId": "http://example.org/BenchmarkStream",
                     "db": {
@@ -121,11 +121,17 @@
       "metaCollection": "METADATA",
       "indexCollection": "INDEX",
       "membersCollection": "DATA",
-      "dbUrl": "mongodb://root:password@mongodb:27017/ldes?authSource=admin"
+      "dbUrl": {
+        "@id": "urn:solid-server:default:db-url"
+      }
     },
     {
       "@id": "urn:solid-server:default:relative-path",
       "valueRaw": "/ldes"
+    },
+    {
+      "@id": "urn:solid-server:default:db-url",
+      "@type": "Variable"
     }
   ]
 }

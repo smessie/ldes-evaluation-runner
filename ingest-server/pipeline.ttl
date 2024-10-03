@@ -151,7 +151,11 @@
     js:dataInput <bucketized/reader>;
     js:metadataInput <metadata/bucketized/reader>;
     js:database [
-          js:url <mongodb://root:password@mongodb:27017/ldes?authSource=admin>;
+          js:url [
+                     a rdfl:EnvVariable;
+                     rdfl:envDefault <mongodb://root:password@mongodb:27017/ldes?authSource=admin>;
+                     rdfl:envKey "DATABASE_URL"
+                 ];
           js:metadata "METADATA";
           js:data "DATA";
           js:index "INDEX";
