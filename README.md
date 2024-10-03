@@ -39,6 +39,7 @@ The following variables can be set:
   Used to end the benchmark.
 - `POLL_INTERVAL`: In the case of `UPDATING_LDES`. The poll interval used by the ldes-client during the benchmark.
 - `NGINX_CONFIG`: The path to the nginx configuration file to use.
+- `DATABASE_URL`: The URL to the database to use. Supported: `mongodb://...` and `redis://...`.
 
 Preconfigured `.env` files can be found in the `env` directory.
 
