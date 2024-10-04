@@ -37,19 +37,12 @@
     :writer <metadata/bucketized/writer>.
 
 
-# Channel for js:ReadReplication → js:Buffer
+# Channel for js:ReadReplication → js:Sdsify
 <ldes-raw/reader> a js:JsReaderChannel.
 <ldes-raw/writer> a js:JsWriterChannel.
 [ ] a js:JsChannel;
     :reader <ldes-raw/reader>;
     :writer <ldes-raw/writer>.
-
-# Channel for js:Buffer → js:Sdsify
-<buffered/reader> a js:JsReaderChannel.
-<buffered/writer> a js:JsWriterChannel.
-[ ] a js:JsChannel;
-    :reader <buffered/reader>;
-    :writer <buffered/writer>.
 
 # Channel for js:Sdsify → js:Bucketize
 <sds/reader> a js:JsReaderChannel.
@@ -86,29 +79,9 @@
     js:outgoing <ldes-raw/writer>;
     js:savePath <./data/replication-data.txt>.
 
-# Processor to buffer the data so that we can influence its throughput.
-[ ] a js:Buffer;
-    js:incoming <ldes-raw/reader>;
-    js:outgoing <buffered/writer>;
-    js:interval [
-                    a rdfl:EnvVariable;
-                    rdfl:envDefault 2000;
-                    rdfl:envKey "INTERVAL"
-                ];
-    js:amount [
-                  a rdfl:EnvVariable;
-                  rdfl:envDefault 100;
-                  rdfl:envKey "AMOUNT_PER_INTERVAL"
-              ];
-    js:minAmount [
-                     a rdfl:EnvVariable;
-                     rdfl:envDefault 100;
-                     rdfl:envKey "AMOUNT_PER_INTERVAL"
-                 ].
-
 # Processor to describe every entity as part of a SDS stream for further processing
 [ ] a js:Sdsify;
-    js:input <buffered/reader>;
+    js:input <ldes-raw/reader>;
     js:output <sds/writer>;
     js:stream ex:BenchmarkStream;
     js:timestampPath prov:generatedAtTime;

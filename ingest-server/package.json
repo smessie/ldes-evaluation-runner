@@ -15,7 +15,7 @@
     "@rdfc/log-processor-ts": "^1.0.0",
     "@rdfc/replication-processor-ts": "^1.1.1",
     "@rdfc/sds-processors-ts": "^1.0.0-alpha.3",
-    "@rdfc/sds-storage-writer-ts": "^1.0.0-alpha.4",
+    "@rdfc/sds-storage-writer-ts": "^1.0.0-alpha.5",
     "ldes-client": "^0.0.10-alpha.10"
   }
 }

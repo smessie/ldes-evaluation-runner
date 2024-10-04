@@ -136,7 +136,6 @@ function stopChildProcessOnExit(child: ChildProcess): void {
 
         console.log(`Exiting because of ${code}. Cleaning up...`);
         await cleanup();
-        process.exit();
     };
     process.on("exit", callOnExit);
     process.on("SIGINT", callOnExit);
