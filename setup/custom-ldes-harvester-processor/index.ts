@@ -1,12 +1,13 @@
 import {Writer} from "@rdfc/js-runner";
 import {replicateLDES, enhanced_fetch} from "ldes-client";
 import {DataFactory} from "rdf-data-factory";
-import {SDS, TREE} from "@treecg/types";
+import {SDS, TREE, XSD} from "@treecg/types";
 import {Quad_Object} from "@rdfjs/types";
 import {DataFactory as NDataFactory, Writer as NWriter} from "n3";
 import {LeafCondition} from "ldes-client";
 import {pred} from "rdf-lens";
 import namedNode = NDataFactory.namedNode;
+import literal = NDataFactory.literal;
 
 const df = new DataFactory();
 
@@ -42,13 +43,13 @@ export function harvest(
          // Configure ldes-client
          const condition = new LeafCondition({
             relationType: namedNode(TREE.GreaterThanOrEqualToRelation),
-            value: date.toISOString(),
+            value: literal(date.toISOString(), namedNode(XSD.dateTime)),
             compareType: 'date',
             path: path,
             pathQuads: {entry: timestampTerm, quads: []},
             defaultTimezone: 'Z',
          });
-         condition.range.add(new Date(date.getTime() + interval), TREE.LessThanRelation);
+         condition.range.add(new Date(date.getTime() + interval), TREE.LessThanRelation, XSD.dateTime);
          const ldesClient = replicateLDES({
             url: url,
             polling: false,
