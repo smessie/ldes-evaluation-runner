@@ -27,23 +27,44 @@ async function main() {
         config.pollInterval = parseInt(process.env.POLL_INTERVAL || "");
     }
 
-    const results = [];
-    for (let i = 0; i < iterations; i++) {
+    if (benchmarkType === "STATIC_LDES") {
+        console.log('Starting static LDES benchmark');
+
         // Start the required services
-        console.log(`Starting iteration ${i + 1}`);
         await setup(envFile);
 
         // Wait for the services to be online
         await awaitOnline();
 
-        if (benchmarkType === "STATIC_LDES") {
-            // Wait for the LDES to contain the expected number of members
-            console.log(`Waiting for the LDES to contain ${config.expectedCount} members`);
-            await awaitMemberCount(config.expectedCount);
+        // Wait for the LDES to contain the expected number of members
+        console.log(`Waiting for the LDES to contain ${config.expectedCount} members`);
+        await awaitMemberCount(config.expectedCount);
+
+        // Warmup rounds
+        const warmupRounds = parseInt(process.env.WARMUP_ROUNDS || "");
+        const warmupFile = process.env.WARMUP_FILE || "";
+        if (warmupRounds > 0) {
+            for (let i = 0; i < warmupRounds; i++) {
+                console.log(`Running warmup round ${i + 1}/${warmupRounds}`);
+                await runBenchmarkIteration(warmupFile, config);
+            }
+        }
+    }
+
+    const results = [];
+    for (let i = 0; i < iterations; i++) {
+        console.log(`Starting iteration ${i + 1}/${iterations}`);
+
+        if (benchmarkType === "UPDATING_LDES") {
+            // Start the required services
+            await setup(envFile);
+
+            // Wait for the services to be online
+            await awaitOnline();
         }
 
         // Run the benchmark
-        console.log(`Running benchmark iteration ${i + 1}`);
+        console.log(`Running benchmark iteration ${i + 1}/${iterations}`);
         const result = await runBenchmarkIteration(execFile, config);
         results.push(result);
 
@@ -64,6 +85,13 @@ async function main() {
             );
         }
 
+        if (benchmarkType === "UPDATING_LDES") {
+            // Cleanup the services
+            await cleanup();
+        }
+    }
+
+    if (benchmarkType === "STATIC_LDES") {
         // Cleanup the services
         await cleanup();
     }

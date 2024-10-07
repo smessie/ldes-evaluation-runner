@@ -28,6 +28,8 @@ The following variables can be set:
 
 - `TYPE`: The benchmark type. Currently supported: `UPDATING_LDES`.
 - `EXEC_FILE`: The file to execute. This is the file that will be benchmarked.
+- `WARMUP_FILE`: The file to execute during the warmup phase.
+- `WARMUP_ROUNDS`: The amount of warmup iterations to run.
 - `ITERATIONS`: The amount of iterations to run the benchmark.
 - `INGEST_PIPELINE`: The pipeline to use for ingesting the LDES.
 - `PAGE_SIZE`: The page size to use for the LDES.
@@ -39,6 +41,7 @@ The following variables can be set:
   Used to end the benchmark.
 - `POLL_INTERVAL`: In the case of `UPDATING_LDES`. The poll interval used by the ldes-client during the benchmark.
 - `NGINX_CONFIG`: The path to the nginx configuration file to use.
+- `NGINX_SITE`: The path to the nginx site configuration file to use.
 - `DATABASE_URL`: The URL to the database to use. Supported: `mongodb://...` and `redis://...`.
 
 Preconfigured `.env` files can be found in the `env` directory.
