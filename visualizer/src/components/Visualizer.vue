@@ -38,7 +38,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(benchmarkResult, index) in benchmarkResults" :key="benchmarkResult[0].name">
-                                    <td>{{ benchmarkResult[0].name }}</td>
+                                    <td>{{ baseName(benchmarkResult[0].name || "") }}</td>
                                     <td>{{ benchmarkResult.length }}</td>
                                     <td>
                                         {{
@@ -448,6 +448,10 @@ export default defineComponent({
             }
             const i = Math.floor(Math.log(bytes) / Math.log(1000));
             return `${(bytes / Math.pow(1000, i)).toFixed(2)} ${sizes[i]}`;
+        },
+        baseName(name: string): string {
+            // Split of ' - it. x' if it exists
+            return name.split(" - it. ")[0];
         },
     },
 });
