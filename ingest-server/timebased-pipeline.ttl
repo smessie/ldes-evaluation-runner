@@ -84,16 +84,7 @@
     js:input <ldes-raw/reader>;
     js:output <sds/writer>;
     js:stream ex:BenchmarkStream;
-    js:timestampPath prov:generatedAtTime;
-    js:typeFilter verkeersmetingen:Verkeersmeting;
-    js:shape """
-      @prefix sh: <http://www.w3.org/ns/shacl#>.
-      @prefix ex: <http://example.org/>.
-      @prefix verkeersmetingen: <https://data.vlaanderen.be/ns/verkeersmetingen#> .
-
-      [ ] a sh:NodeShape;
-          sh:targetClass verkeersmetingen:Verkeersmeting.
-   """.
+    js:timestampPath prov:generatedAtTime.
 
 [ ] a js:Log;
     js:incoming <sds/reader>;
