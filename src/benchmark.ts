@@ -4,40 +4,67 @@ import pidusage from "pidusage";
 import { cleanup } from "./setup";
 import { v2 as compose } from "@smessie/docker-compose";
 
-export async function runBenchmarkIteration(file: string, config: any): Promise<BenchmarkResult> {
+export async function runBenchmarkIteration(
+    file: string,
+    config: any,
+    numClients: number = 1,
+): Promise<BenchmarkResult> {
     // Start the child process executing the code we want to benchmark
     let args: string[] = [];
     if (config.type === "UPDATING_LDES" || config.type === "STATIC_LDES") {
         args = [config.expectedCount.toString(), config.pollInterval.toString()];
     }
 
-    let resultMembersCount = 0;
-    let resultQuadsCount = 0;
-    const child = fork(file, args);
-    child.on("message", (message) => {
-        if (typeof message === "object" && "resultMembers" in message) {
-            resultMembersCount = message.resultMembers as number;
-        }
-        if (typeof message === "object" && "resultQuads" in message) {
-            resultQuadsCount = message.resultQuads as number;
-        }
-    });
+    const children: {
+        child: ChildProcess;
+        promise: Promise<{
+            resultMembersCount: number;
+            resultQuadsCount: number;
+        }>;
+    }[] = [];
 
-    // Stop the child process when the parent process exits
-    stopChildProcessOnExit(child);
+    for (let i = 0; i < numClients; i++) {
+        const child = fork(file, args);
+
+        // Stop the child process when the parent process exits
+        stopChildProcessOnExit(child);
+
+        const promise: Promise<{
+            resultMembersCount: number;
+            resultQuadsCount: number;
+        }> = new Promise((resolve, reject) => {
+            let resultMembersCount = 0;
+            let resultQuadsCount = 0;
+            child.on("message", (message) => {
+                if (typeof message === "object" && "resultMembers" in message) {
+                    resultMembersCount = message.resultMembers as number;
+                }
+                if (typeof message === "object" && "resultQuads" in message) {
+                    resultQuadsCount = message.resultQuads as number;
+                }
+            });
+
+            child.on("close", () => {
+                resolve({ resultMembersCount, resultQuadsCount });
+            });
+            child.on("error", reject);
+            if (i === 0) {
+                child.stdout?.on("data", console.log);
+            }
+        });
+
+        children.push({ child, promise });
+    }
 
     // Start collecting metrics
-    const metrics = collectMetrics(child, 1000);
+    const metrics = collectMetrics(children.map(c => c.child), 1000);
 
-    // Wait for the child process to finish
-    const promise: Promise<Metrics> = new Promise((resolve, reject): void => {
-        child.on("close", () => {
-            resolve(metrics());
-        });
-        child.on("error", reject);
-        child.stdout?.on("data", console.log);
-    });
-    const metricsResult = await promise;
+    // Wait for the child processes to finish
+    const results = await Promise.all(children.map((c) => c.promise));
+    const avgMembersCount = results.reduce((acc, val) => acc + val.resultMembersCount, 0) / results.length;
+    const avgQuadsCount = results.reduce((acc, val) => acc + val.resultQuadsCount, 0) / results.length;
+
+    const metricsResult = metrics();
 
     const clientLoad: Load = statsToLoad(metricsResult.clientStats);
     const serverLoad: Load = statsToLoad(metricsResult.serverStats);
@@ -52,10 +79,10 @@ export async function runBenchmarkIteration(file: string, config: any): Promise<
             metricsResult.clientStats,
             metricsResult.serverStats,
             metricsResult.proxyStats,
-            resultMembersCount,
-            resultMembersCount / metricsResult.time,
-            resultQuadsCount,
-            resultQuadsCount / metricsResult.time,
+            avgMembersCount,
+            avgMembersCount / metricsResult.time,
+            avgQuadsCount,
+            avgQuadsCount / metricsResult.time,
             config.pollInterval,
         );
     } else {
@@ -76,9 +103,11 @@ export async function runBenchmarkIteration(file: string, config: any): Promise<
     }
 }
 
-function collectMetrics(child: ChildProcess, intervalMs: number = 100): () => Metrics {
-    if (!child.pid) {
-        throw new Error("Child process does not have a PID");
+function collectMetrics(children: ChildProcess[], intervalMs: number = 100): () => Metrics {
+    for (const child of children) {
+        if (!child.pid) {
+            throw new Error("Child process does not have a PID");
+        }
     }
 
     // Collect cpu and memory metrics every intervalMs milliseconds
@@ -86,26 +115,35 @@ function collectMetrics(child: ChildProcess, intervalMs: number = 100): () => Me
     const serverStats: { cpu: number; memory: number; networkInput: number; networkOutput: number }[] = [];
     const proxyStats: { cpu: number; memory: number; networkInput: number; networkOutput: number }[] = [];
     const interval = setInterval(async () => {
-        try {
-            const clientStat = await pidusage(child.pid!);
-            clientStats.push({ cpu: clientStat.cpu, memory: clientStat.memory });
+        // Add average cpu and memory usage of all clients to the clientStats array
+        const cpus = [];
+        const memories = [];
+        for (const child of children) {
+            try {
+                const clientStat = await pidusage(child.pid!);
+                cpus.push(clientStat.cpu);
+                memories.push(clientStat.memory);
+            } catch (_) {}
+        }
+        const avgCpu = cpus.reduce((acc, val) => acc + val, 0) / cpus.length;
+        const avgMemory = memories.reduce((acc, val) => acc + val, 0) / memories.length;
+        clientStats.push({ cpu: avgCpu, memory: avgMemory });
 
-            const serverStat: compose.DockerComposeStatsResult = await compose.stats("ldes-server");
-            serverStats.push({
-                cpu: parseFloat(serverStat.CPUPerc.replace("%", "")),
-                memory: readableFormatToBytes(serverStat.MemUsage.split("/")[0].trim()),
-                networkInput: readableFormatToBytes(serverStat.NetIO.split("/")[0].trim()),
-                networkOutput: readableFormatToBytes(serverStat.NetIO.split("/")[1].trim()),
-            });
+        const serverStat: compose.DockerComposeStatsResult = await compose.stats("ldes-server");
+        serverStats.push({
+            cpu: parseFloat(serverStat.CPUPerc.replace("%", "")),
+            memory: readableFormatToBytes(serverStat.MemUsage.split("/")[0].trim()),
+            networkInput: readableFormatToBytes(serverStat.NetIO.split("/")[0].trim()),
+            networkOutput: readableFormatToBytes(serverStat.NetIO.split("/")[1].trim()),
+        });
 
-            const proxyStat: compose.DockerComposeStatsResult = await compose.stats("nginx");
-            proxyStats.push({
-                cpu: parseFloat(proxyStat.CPUPerc.replace("%", "")),
-                memory: readableFormatToBytes(proxyStat.MemUsage.split("/")[0].trim()),
-                networkInput: readableFormatToBytes(proxyStat.NetIO.split("/")[0].trim()),
-                networkOutput: readableFormatToBytes(proxyStat.NetIO.split("/")[1].trim()),
-            });
-        } catch (_) {}
+        const proxyStat: compose.DockerComposeStatsResult = await compose.stats("nginx");
+        proxyStats.push({
+            cpu: parseFloat(proxyStat.CPUPerc.replace("%", "")),
+            memory: readableFormatToBytes(proxyStat.MemUsage.split("/")[0].trim()),
+            networkInput: readableFormatToBytes(proxyStat.NetIO.split("/")[0].trim()),
+            networkOutput: readableFormatToBytes(proxyStat.NetIO.split("/")[1].trim()),
+        });
     }, intervalMs);
 
     // Start a timer to measure the total time
@@ -183,7 +221,16 @@ function statsToLoad(stats: { cpu: number; memory: number; networkInput?: number
     const meanMemory = mean(stats.map((stat) => stat.memory));
     const networkInput = (stats[stats.length - 1].networkInput || 0) - (stats[0].networkInput || 0);
     const networkOutput = (stats[stats.length - 1].networkOutput || 0) - (stats[0].networkOutput || 0);
-    return { avgCpu, avgMemory, maxCpu, maxMemory, meanCpu, meanMemory, networkInput: networkInput, networkOutput: networkOutput };
+    return {
+        avgCpu,
+        avgMemory,
+        maxCpu,
+        maxMemory,
+        meanCpu,
+        meanMemory,
+        networkInput: networkInput,
+        networkOutput: networkOutput,
+    };
 }
 
 function mean(values: number[]): number {

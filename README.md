@@ -43,6 +43,7 @@ The following variables can be set:
 - `NGINX_CONFIG`: The path to the nginx configuration file to use.
 - `NGINX_SITE`: The path to the nginx site configuration file to use.
 - `DATABASE_URL`: The URL to the database to use. Supported: `mongodb://...` and `redis://...`.
+- `NUM_CLIENTS`: The number of clients that should simultaneously run during the benchmark.
 
 Preconfigured `.env` files can be found in the `env` directory.
 

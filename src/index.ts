@@ -19,6 +19,7 @@ async function main() {
     checkEnvVars(["EXEC_FILE", "ITERATIONS", "TYPE"]);
     const execFile = process.env.EXEC_FILE || "";
     const iterations = parseInt(process.env.ITERATIONS || "");
+    const numClients = parseInt(process.env.NUM_CLIENTS || "1");
     const benchmarkType = process.env.TYPE || "";
     const config: any = { type: benchmarkType };
     if (benchmarkType === "UPDATING_LDES" || benchmarkType === "STATIC_LDES") {
@@ -65,7 +66,7 @@ async function main() {
 
         // Run the benchmark
         console.log(`Running benchmark iteration ${i + 1}/${iterations}`);
-        const result = await runBenchmarkIteration(execFile, config);
+        const result = await runBenchmarkIteration(execFile, config, numClients);
         results.push(result);
 
         console.log(
