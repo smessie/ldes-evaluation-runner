@@ -2,7 +2,7 @@ import type { ChildProcess } from "node:child_process";
 import { fork } from "node:child_process";
 import pidusage from "pidusage";
 import { cleanup } from "./setup";
-import { v2 as compose } from "@smessie/docker-compose";
+import * as compose from "docker-compose";
 
 export async function runBenchmarkIteration(
     file: string,
