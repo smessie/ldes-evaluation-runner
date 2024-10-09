@@ -66,6 +66,11 @@ export async function runBenchmarkIteration(
 
     const metricsResult = metrics();
 
+    // Make sure the child processes are stopped.
+    for (const child of children) {
+        child.child.kill();
+    }
+
     const clientLoad: Load = statsToLoad(metricsResult.clientStats);
     const serverLoad: Load = statsToLoad(metricsResult.serverStats);
     const proxyLoad: Load = statsToLoad(metricsResult.proxyStats);
@@ -129,21 +134,25 @@ function collectMetrics(children: ChildProcess[], intervalMs: number = 100): () 
         const avgMemory = memories.reduce((acc, val) => acc + val, 0) / memories.length;
         clientStats.push({ cpu: avgCpu, memory: avgMemory });
 
-        const serverStat: compose.DockerComposeStatsResult = await compose.stats("ldes-server");
-        serverStats.push({
-            cpu: parseFloat(serverStat.CPUPerc.replace("%", "")),
-            memory: readableFormatToBytes(serverStat.MemUsage.split("/")[0].trim()),
-            networkInput: readableFormatToBytes(serverStat.NetIO.split("/")[0].trim()),
-            networkOutput: readableFormatToBytes(serverStat.NetIO.split("/")[1].trim()),
-        });
+        try {
+            const serverStat: compose.DockerComposeStatsResult = await compose.stats("ldes-server");
+            serverStats.push({
+                cpu: parseFloat(serverStat.CPUPerc.replace("%", "")),
+                memory: readableFormatToBytes(serverStat.MemUsage.split("/")[0].trim()),
+                networkInput: readableFormatToBytes(serverStat.NetIO.split("/")[0].trim()),
+                networkOutput: readableFormatToBytes(serverStat.NetIO.split("/")[1].trim()),
+            });
+        } catch (_) {}
 
-        const proxyStat: compose.DockerComposeStatsResult = await compose.stats("nginx");
-        proxyStats.push({
-            cpu: parseFloat(proxyStat.CPUPerc.replace("%", "")),
-            memory: readableFormatToBytes(proxyStat.MemUsage.split("/")[0].trim()),
-            networkInput: readableFormatToBytes(proxyStat.NetIO.split("/")[0].trim()),
-            networkOutput: readableFormatToBytes(proxyStat.NetIO.split("/")[1].trim()),
-        });
+        try {
+            const proxyStat: compose.DockerComposeStatsResult = await compose.stats("nginx");
+            proxyStats.push({
+                cpu: parseFloat(proxyStat.CPUPerc.replace("%", "")),
+                memory: readableFormatToBytes(proxyStat.MemUsage.split("/")[0].trim()),
+                networkInput: readableFormatToBytes(proxyStat.NetIO.split("/")[0].trim()),
+                networkOutput: readableFormatToBytes(proxyStat.NetIO.split("/")[1].trim()),
+            });
+        } catch (_) {}
     }, intervalMs);
 
     // Start a timer to measure the total time
@@ -167,18 +176,16 @@ function stopChildProcessOnExit(child: ChildProcess): void {
     child.on("exit", () => {
         terminated = true;
     });
-    const callOnExit = async (code: any) => {
+    const callOnExit = (code: any) => {
         if (!child.killed && !terminated) {
             child.kill();
+            console.log(`Exiting because of ${code}. Cleaning up...`);
         }
-
-        console.log(`Exiting because of ${code}. Cleaning up...`);
-        await cleanup();
     };
-    process.on("exit", callOnExit);
-    process.on("SIGINT", callOnExit);
-    process.on("SIGQUIT", callOnExit);
-    process.on("uncaughtException", callOnExit);
+    process.once("exit", callOnExit);
+    process.once("SIGINT", callOnExit);
+    process.once("SIGQUIT", callOnExit);
+    process.once("uncaughtException", callOnExit);
 }
 
 function readableFormatToBytes(value: string): number {

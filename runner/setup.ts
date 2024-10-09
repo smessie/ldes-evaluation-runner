@@ -53,3 +53,10 @@ export async function awaitMemberCount(expectedCount: number) {
 export async function cleanup() {
     await compose.down({ cwd: path.join(__dirname), log: false, commandOptions: ["--volumes"] });
 }
+
+export function ensureCleanup() {
+    process.once("beforeExit", cleanup);
+    process.once("SIGINT", cleanup);
+    process.once("SIGQUIT", cleanup);
+    process.once("uncaughtException", cleanup);
+}

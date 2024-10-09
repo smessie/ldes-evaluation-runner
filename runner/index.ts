@@ -1,4 +1,4 @@
-import { awaitMemberCount, awaitOnline, cleanup, setup } from "./setup";
+import { awaitMemberCount, awaitOnline, cleanup, ensureCleanup, setup } from "./setup";
 import { runBenchmarkIteration } from "./benchmark";
 import dotenv from "dotenv";
 import jsonfile from "jsonfile";
@@ -51,6 +51,8 @@ async function main() {
             }
         }
     }
+
+    ensureCleanup();
 
     const results = [];
     for (let i = 0; i < iterations; i++) {
