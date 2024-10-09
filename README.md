@@ -2,9 +2,12 @@
 
 ## Setup
 
+### Retrieve the dataset
+
 First, make sure to install the required dependencies and build the code by running:
 
 ```bash
+cd setup
 npm install
 npm run build
 ```
@@ -19,6 +22,17 @@ npx js-runner setup/pipeline-6months.ttl
 
 With the `MAX` environment variable you can specify the amount of triples to download. The default for `setup/pipeline.ttl` is 100000.
 To download the full LDES, set `MAX` to `0`.
+
+
+### Build the runner
+
+After the data has been gathered, you can build the runner by running:
+
+```bash
+cd runner
+npm install
+npm run build
+```
 
 
 ## Configuration
@@ -53,7 +67,7 @@ Preconfigured `.env` files can be found in the `env` directory.
 To run the benchmark, execute the following command:
 
 ```bash
-node . <env-file> <output-file>
+node runner <env-file> <output-file>
 ```
 
 `<env-file>` should be the absolute path to the `.env` file you want to use.

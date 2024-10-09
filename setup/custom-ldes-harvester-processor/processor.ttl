@@ -6,7 +6,7 @@
 @prefix sh: <http://www.w3.org/ns/shacl#>.
 
 js:LdesHarvester a js:JsProcess;
-    js:file <../../lib/setup/custom-ldes-harvester-processor/index.js>;
+    js:file <./lib/index.js>;
     js:function "harvest";
     js:location <./>;
     js:mapping [

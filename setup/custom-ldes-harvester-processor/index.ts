@@ -6,8 +6,7 @@ import {Quad_Object} from "@rdfjs/types";
 import {DataFactory as NDataFactory, Writer as NWriter} from "n3";
 import {LeafCondition} from "ldes-client";
 import {pred} from "rdf-lens";
-import namedNode = NDataFactory.namedNode;
-import literal = NDataFactory.literal;
+const {namedNode, literal} = NDataFactory;
 
 const df = new DataFactory();
 

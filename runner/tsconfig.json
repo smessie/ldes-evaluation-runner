@@ -25,6 +25,5 @@
     "resolveFullPaths": true,
     "verbose": false
   },
-  "include": ["src/**/*", "setup/**/*"],
   "exclude": ["node_modules/**/*"]
 }
