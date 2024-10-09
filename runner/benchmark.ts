@@ -182,13 +182,13 @@ function stopChildProcessOnExit(child: ChildProcess): void {
 }
 
 function readableFormatToBytes(value: string): number {
-    const match = value.match(/^([0-9.]+)([A-z]+)$/);
+    const match = value.match(/^([0-9.]+(e[+-][0-9]+)?)([A-z]+)$/);
     if (!match) {
         throw new Error(`Invalid value: ${value}`);
     }
 
     const number = parseFloat(match[1]);
-    switch (match[2]) {
+    switch (match[3]) {
         case "B":
             return number;
         case "KiB":
@@ -208,7 +208,7 @@ function readableFormatToBytes(value: string): number {
         case "TB":
             return number * 1000 * 1000 * 1000 * 1000;
         default:
-            throw new Error(`Invalid unit: ${match[2]}`);
+            throw new Error(`Invalid unit: ${match[3]}`);
     }
 }
 
