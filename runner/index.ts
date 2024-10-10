@@ -2,11 +2,12 @@ import { awaitMemberCount, awaitOnline, cleanup, ensureCleanup, setup } from "./
 import { runBenchmarkIteration } from "./benchmark";
 import dotenv from "dotenv";
 import jsonfile from "jsonfile";
+import { initiateDistribution, stopDistribution } from "./distributed";
 
 async function main() {
     // Get env file from first argument
     if (process.argv.length < 4) {
-        console.error("Usage: node . <env-file> <output-file>");
+        console.error("Usage: node runner <env-file> <output-file>");
         process.exit(1);
     }
     const envFile = process.argv[2];
@@ -28,8 +29,10 @@ async function main() {
         config.pollInterval = parseInt(process.env.POLL_INTERVAL || "");
     }
 
+    await initiateDistribution();
+
     if (benchmarkType === "STATIC_LDES") {
-        console.log('Starting static LDES benchmark');
+        console.log("Starting static LDES benchmark");
 
         // Start the required services
         await setup(envFile);
@@ -98,6 +101,8 @@ async function main() {
         // Cleanup the services
         await cleanup();
     }
+
+    stopDistribution();
 
     console.log("\nResults:");
     for (const [i, result] of results.entries()) {

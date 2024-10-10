@@ -24,9 +24,20 @@ With the `MAX` environment variable you can specify the amount of triples to dow
 To download the full LDES, set `MAX` to `0`.
 
 
+### Build the client
+
+After the data has been gathered, you can build the client by running:
+
+```bash
+cd client
+npm install
+npm run build
+```
+
+
 ### Build the runner
 
-After the data has been gathered, you can build the runner by running:
+After the client has been built, you can build the runner by running:
 
 ```bash
 cd runner
@@ -64,9 +75,13 @@ Preconfigured `.env` files can be found in the `env` directory.
 
 ## Running the benchmark
 
-To run the benchmark, execute the following command:
+To run the benchmark, execute the following commands:
 
 ```bash
+# Run as many client runners as you want, optionally on different machines.
+node client <name> <server-hostname>
+
+# Run the benchmark runner, this will start the benchmark and use the client runners.
 node runner <env-file> <output-file>
 ```
 
