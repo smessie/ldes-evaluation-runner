@@ -15,11 +15,22 @@ export async function runBenchmarkIteration(
     // Start collecting server and proxy metrics
     const metrics = collectMetrics(1000);
 
-    // Start the clients
-    const instancesInitialized = startClients(numClients, file, args);
+    // Start the clients if not UPDATING_LDES (then the clients are already started)
+    let instancesInitialized;
+    if (config.type !== "UPDATING_LDES") {
+        instancesInitialized = startClients(numClients, file, args);
+    } else {
+        instancesInitialized = numClients;
+    }
 
     // Wait for the clients to finish
-    const { time, clientStats, avgMembersCount, avgQuadsCount } = await getResultsFromClients(instancesInitialized);
+    const {
+        time,
+        clientStats,
+        avgMembersCount,
+        avgQuadsCount,
+        avgLatency,
+    } = await getResultsFromClients(instancesInitialized);
 
     // Get the server and proxy metrics
     const metricsResult = metrics();
@@ -41,6 +52,7 @@ export async function runBenchmarkIteration(
             avgMembersCount / time,
             avgQuadsCount,
             avgQuadsCount / time,
+            avgLatency,
             config.pollInterval,
         );
     } else {
@@ -52,6 +64,7 @@ export async function runBenchmarkIteration(
             clientStats,
             metricsResult.serverStats,
             metricsResult.proxyStats,
+            undefined,
             undefined,
             undefined,
             undefined,
@@ -176,6 +189,7 @@ export class BenchmarkResult {
     public readonly membersThroughput?: number;
     public readonly quadsCount?: number;
     public readonly quadsThroughput?: number;
+    public readonly latency?: number;
     public readonly pollInterval?: number;
 
     constructor(
@@ -203,6 +217,7 @@ export class BenchmarkResult {
         membersThroughput?: number,
         quadsCount?: number,
         quadsThroughput?: number,
+        latency?: number,
         pollInterval?: number,
     ) {
         this.time = time;
@@ -216,6 +231,7 @@ export class BenchmarkResult {
         this.membersThroughput = membersThroughput;
         this.quadsCount = quadsCount;
         this.quadsThroughput = quadsThroughput;
+        this.latency = latency;
         this.pollInterval = pollInterval;
     }
 }

@@ -2,7 +2,7 @@ import { awaitMemberCount, awaitOnline, cleanup, ensureCleanup, setup } from "./
 import { runBenchmarkIteration } from "./benchmark";
 import dotenv from "dotenv";
 import jsonfile from "jsonfile";
-import { initiateDistribution, stopDistribution } from "./distributed";
+import { initiateDistribution, startClients, stopDistribution } from "./distributed";
 
 async function main() {
     // Get env file from first argument
@@ -61,7 +61,11 @@ async function main() {
     for (let i = 0; i < iterations; i++) {
         console.log(`Starting iteration ${i + 1}/${iterations}`);
 
+        let instancesInitialized;
         if (benchmarkType === "UPDATING_LDES") {
+            // Start the clients before the ingestion starts
+            instancesInitialized = startClients(numClients, execFile, [config.expectedCount.toString(), config.pollInterval.toString()]);
+
             // Start the required services
             await setup(envFile);
 
@@ -71,11 +75,11 @@ async function main() {
 
         // Run the benchmark
         console.log(`Running benchmark iteration ${i + 1}/${iterations}`);
-        const result = await runBenchmarkIteration(execFile, config, numClients);
+        const result = await runBenchmarkIteration(execFile, config, instancesInitialized ?? numClients);
         results.push(result);
 
         console.log(
-            `Iteration ${i + 1}: ${result.membersCount} members in ${result.time}s (throughput: ${result.membersThroughput} members/s), ${result.quadsCount} quads in ${result.time}s (throughput: ${result.quadsThroughput} quads/s)`,
+            `Iteration ${i + 1}: ${result.membersCount} members in ${result.time}s (throughput: ${result.membersThroughput} members/s), ${result.quadsCount} quads in ${result.time}s (throughput: ${result.quadsThroughput} quads/s), ${result.latency}ms avg latency`,
         );
         console.log(
             `Client: avg ${result.clientLoad.avgCpu}% CPU and ${result.clientLoad.avgMemory / 1024 / 1024}MiB memory and max ${result.clientLoad.maxCpu}% CPU and ${result.clientLoad.maxMemory / 1024 / 1024}MiB memory`,
@@ -107,7 +111,7 @@ async function main() {
     console.log("\nResults:");
     for (const [i, result] of results.entries()) {
         console.log(
-            `${i + 1}, ${result.time}s, ${result.membersCount}, ${result.membersThroughput} members/s, ${result.quadsCount}, ${result.quadsThroughput} members/s, ${result.clientLoad.avgCpu}%, ${result.clientLoad.avgMemory / 1024 / 1024}MiB, ${result.clientLoad.maxCpu}%, ${result.clientLoad.maxMemory / 1024 / 1024}MiB` +
+            `${i + 1}, ${result.time}s, ${result.membersCount}, ${result.membersThroughput} members/s, ${result.quadsCount}, ${result.quadsThroughput} members/s, ${result.latency}ms, ${result.clientLoad.avgCpu}%, ${result.clientLoad.avgMemory / 1024 / 1024}MiB, ${result.clientLoad.maxCpu}%, ${result.clientLoad.maxMemory / 1024 / 1024}MiB` +
                 (result.serverLoad
                     ? `, ${result.serverLoad.avgCpu}%, ${result.serverLoad.avgMemory / 1024 / 1024}MiB, ${result.serverLoad.maxCpu}%, ${result.serverLoad.maxMemory / 1024 / 1024}MiB, ${result.serverLoad.networkInput}MB, ${result.serverLoad.networkOutput}MB`
                     : "") +

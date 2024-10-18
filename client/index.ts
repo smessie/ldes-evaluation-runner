@@ -50,6 +50,7 @@ async function startClients(numClients: number, file: string, args: string[]) {
         promise: Promise<{
             resultMembersCount: number;
             resultQuadsCount: number;
+            latency: number;
         }>;
     }[] = [];
 
@@ -62,9 +63,11 @@ async function startClients(numClients: number, file: string, args: string[]) {
         const promise: Promise<{
             resultMembersCount: number;
             resultQuadsCount: number;
+            latency: number;
         }> = new Promise((resolve, reject) => {
             let resultMembersCount = 0;
             let resultQuadsCount = 0;
+            let latency = 0;
             child.on("message", (message) => {
                 if (typeof message === "object" && "resultMembers" in message) {
                     resultMembersCount = message.resultMembers as number;
@@ -72,10 +75,13 @@ async function startClients(numClients: number, file: string, args: string[]) {
                 if (typeof message === "object" && "resultQuads" in message) {
                     resultQuadsCount = message.resultQuads as number;
                 }
+                if (typeof message === "object" && "latency" in message) {
+                    latency = message.latency as number;
+                }
             });
 
             child.on("close", () => {
-                resolve({ resultMembersCount, resultQuadsCount });
+                resolve({ resultMembersCount, resultQuadsCount, latency });
             });
             child.on("error", reject);
             if (i === 0) {
@@ -96,6 +102,7 @@ async function startClients(numClients: number, file: string, args: string[]) {
     const results = await Promise.all(children.map((c) => c.promise));
     const avgMembersCount = results.reduce((acc, val) => acc + val.resultMembersCount, 0) / results.length;
     const avgQuadsCount = results.reduce((acc, val) => acc + val.resultQuadsCount, 0) / results.length;
+    const avgLatency = results.reduce((acc, val) => acc + val.latency, 0) / results.length;
 
     const metricsResult = metrics();
 
@@ -111,6 +118,7 @@ async function startClients(numClients: number, file: string, args: string[]) {
         clientStats: metricsResult.clientStats,
         avgMembersCount: avgMembersCount,
         avgQuadsCount: avgQuadsCount,
+        avgLatency: avgLatency,
     });
 }
 

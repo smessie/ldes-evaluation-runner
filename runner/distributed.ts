@@ -8,6 +8,7 @@ let results: {
     clientStats: { cpu: number; memory: number }[];
     avgMembersCount: number;
     avgQuadsCount: number;
+    avgLatency: number;
 }[] = [];
 
 export async function initiateDistribution() {
@@ -85,6 +86,7 @@ export async function getResultsFromClients(expected: number): Promise<{
     clientStats: { cpu: number; memory: number }[];
     avgMembersCount: number;
     avgQuadsCount: number;
+    avgLatency: number;
 }> {
     // Wait till all clients have sent their results
     await new Promise((resolve) => {
@@ -103,6 +105,8 @@ export async function getResultsFromClients(expected: number): Promise<{
         results.reduce((acc, result) => acc + result.avgMembersCount * result.numClients, 0) / numClients;
     const avgQuadsCount =
         results.reduce((acc, result) => acc + result.avgQuadsCount * result.numClients, 0) / numClients;
+    const avgLatency =
+        results.reduce((acc, result) => acc + result.avgLatency * result.numClients, 0) / numClients;
 
     const clientStats = [];
     const maxClientStatsLength = Math.max(...results.map((result) => result.clientStats.length));
@@ -119,5 +123,6 @@ export async function getResultsFromClients(expected: number): Promise<{
         clientStats: clientStats,
         avgMembersCount: avgMembersCount,
         avgQuadsCount: avgQuadsCount,
+        avgLatency: avgLatency,
     };
 }
