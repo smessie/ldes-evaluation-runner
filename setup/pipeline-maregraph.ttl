@@ -38,8 +38,8 @@
         js:concurrent 2;
         js:retry [
             a js:FetchRetry;
-            js:maxRetry 15;
-            js:code 429, 410;
+            js:maxRetry 30;
+            js:code 408, 410, 425, 429, 500, 502, 503, 504;
         ];
     ].
 
