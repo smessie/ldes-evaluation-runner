@@ -77,7 +77,11 @@
 # Processor to read and stream out a replication of an on disk saved stream.
 [ ] a js:ReadReplication;
     js:outgoing <ldes-raw/writer>;
-    js:savePath <./data/replication-data.txt>.
+    js:savePath [
+                    a rdfl:EnvVariable;
+                    rdfl:envDefault <./data/replication-data.txt>;
+                    rdfl:envKey "REPLICATION_DATA"
+                ].
 
 # Processor to describe every entity as part of a SDS stream for further processing
 [ ] a js:Sdsify;

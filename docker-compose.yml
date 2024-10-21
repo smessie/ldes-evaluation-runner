@@ -87,6 +87,7 @@ services:
       - AMOUNT_PER_INTERVAL=${AMOUNT_PER_INTERVAL}
       - PAGE_SIZE=${PAGE_SIZE}
       - DATABASE_URL=${DATABASE_URL}
+      - REPLICATION_DATA=${REPLICATION_DATA}
     volumes:
       - ./setup/replication-data.txt:/opt/pipeline/data/replication-data.txt
     logging:
