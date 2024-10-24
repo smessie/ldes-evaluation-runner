@@ -10,8 +10,8 @@ services:
     #volumes:
     #  - ./mongo-data:/data/db
     # Don't expose the port to the outside world when running publicly
-    #ports:
-    #  - 27017:27017
+    ports:
+      - 27017:27017
     restart: always
     logging:
       driver: "json-file"
@@ -26,8 +26,9 @@ services:
     # Don't attach a volume, as we do not want the data to persist between benchmark runs
     #volumes:
     #  - ./redis-data:/data
-    #ports:
-    #  - 6379:6379
+    # Don't expose the port to the outside world when running publicly
+    ports:
+      - 6379:6379
     restart: always
     logging:
       driver: "json-file"
