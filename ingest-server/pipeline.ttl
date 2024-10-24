@@ -70,7 +70,11 @@
 
 # File reader channel for metadata input on js:Ingest
 [ ] a js:GlobRead;
-    js:glob <./metadata.ttl>;
+    js:glob [
+                a rdfl:EnvVariable;
+                rdfl:envDefault <./metadata.ttl>;
+                rdfl:envKey "METADATA_FILE"
+            ];
     js:output <metadata/writer>;
     js:closeOnEnd "true"^^xsd:boolean.
 
