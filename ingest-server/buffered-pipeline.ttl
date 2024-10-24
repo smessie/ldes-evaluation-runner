@@ -44,25 +44,19 @@
     :reader <ldes-raw/reader>;
     :writer <ldes-raw/writer>.
 
-# Channel for js:Buffer → js:Sdsify
+# Channel for js:Buffer → js:Log
 <buffered/reader> a js:JsReaderChannel.
 <buffered/writer> a js:JsWriterChannel.
 [ ] a js:JsChannel;
     :reader <buffered/reader>;
     :writer <buffered/writer>.
 
-# Channel for js:Sdsify → js:Bucketize
-<sds/reader> a js:JsReaderChannel.
-<sds/writer> a js:JsWriterChannel.
+# Channel for js:Log → js:Bucketize
+<logged/reader> a js:JsReaderChannel.
+<logged/writer> a js:JsWriterChannel.
 [ ] a js:JsChannel;
-    :reader <sds/reader>;
-    :writer <sds/writer>.
-
-<sds/logged/reader> a js:JsReaderChannel.
-<sds/logged/writer> a js:JsWriterChannel.
-[ ] a js:JsChannel;
-    :reader <sds/logged/reader>;
-    :writer <sds/logged/writer>.
+    :reader <logged/reader>;
+    :writer <logged/writer>.
 
 # Channel for js:Bucketize → js:Ingest
 <bucketized/writer> a js:JsWriterChannel.
@@ -114,23 +108,16 @@
                      rdfl:envKey "AMOUNT_PER_INTERVAL"
                  ].
 
-# Processor to describe every entity as part of a SDS stream for further processing
-[ ] a js:Sdsify;
-    js:input <buffered/reader>;
-    js:output <sds/writer>;
-    js:stream ex:BenchmarkStream;
-    js:timestampPath prov:generatedAtTime.
-
 [ ] a js:Log;
-    js:incoming <sds/reader>;
+    js:incoming <buffered/reader>;
     js:level "debug";
-    js:label "sdsified";
-    js:outgoing <sds/logged/writer> .
+    js:label "buffered";
+    js:outgoing <logged/writer> .
 
 # Processor to bucketize the data
 [ ] a js:Bucketize;
     js:channels [
-          js:dataInput <sds/logged/reader>;
+          js:dataInput <logged/reader>;
           js:dataOutput <bucketized/writer>;
           js:metadataInput <metadata/reader>;
           js:metadataOutput <metadata/bucketized/writer>;

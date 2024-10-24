@@ -33,6 +33,7 @@
     js:output <ldes/writer>;
     js:url <https://www.marineregions.org/feed>;
     js:ordered "ascending";
+    js:shapeFile <marineregions-shape.ttl>;
     js:fetch [
         a js:FetchConfig;
         js:safe true;
@@ -49,7 +50,7 @@
 [ ] a js:WriteReplication;
     js:incoming <ldes/reader>;
     js:append false;
-    js:savePath <./replication-data-maregraph-asc.txt>;
+    js:savePath <./replication-data-marineregions-asc-slim.txt>;
     js:max [
                a rdfl:EnvVariable;
                rdfl:envDefault 0;

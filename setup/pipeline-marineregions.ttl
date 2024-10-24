@@ -6,55 +6,52 @@
 @prefix as: <https://www.w3.org/ns/activitystreams#>.
 @prefix ex: <http://example.org/>.
 @prefix rdfl: <https://w3id.org/rdf-lens/ontology#>.
-@prefix prov: <http://www.w3.org/ns/prov#> .
 
 <> owl:imports <./node_modules/@rdfc/js-runner/ontology.ttl>.
 <> owl:imports <./node_modules/@rdfc/js-runner/channels/file.ttl>.
+<> owl:imports <./node_modules/ldes-client/processor.ttl>.
 <> owl:imports <./node_modules/@rdfc/replication-processor-ts/processor.ttl>.
-<> owl:imports <./custom-ldes-harvester-processor/processor.ttl>.
 
 #########################################
 # Channel definitions
 #########################################
 
-# Channel for js:LdesClient → js:Sdsify
+# Channel for js:LdesClient → js:WriteReplication
 <ldes/reader> a js:JsReaderChannel.
 <ldes/writer> a js:JsWriterChannel.
 [ ] a js:JsChannel;
     :reader <ldes/reader>;
     :writer <ldes/writer>.
 
-# Channel for js:Sdsify → js:WriteReplication
-<sds/reader> a js:JsReaderChannel.
-<sds/writer> a js:JsWriterChannel.
-[ ] a js:JsChannel;
-    :reader <sds/reader>;
-    :writer <sds/writer>.
 
 #########################################
 # Processor definitions
 #########################################
 
 # Processor to read member events from a LDES
-[ ] a js:LdesHarvester;
-    js:outgoing <ldes/writer>;
-    js:url "https://telraam-api.net/ldes/observations/by-time";
-    js:start "2024-03-01T00:00:00Z"^^xsd:dateTime;
-    js:end "2024-09-01T00:00:00Z"^^xsd:dateTime;
-    js:interval 3600000;
-    js:amountPerInterval 25.
-
-
-# Processor to describe every entity as part of a SDS stream for further processing
-[ ] a js:Sdsify;
-    js:input <ldes/reader>;
-    js:output <sds/writer>;
-    js:stream ex:BenchmarkStream;
-    js:timestampPath prov:generatedAtTime.
+[ ] a js:LdesClient;
+    js:output <ldes/writer>;
+    js:url <https://www.marineregions.org/feed>;
+    js:ordered "ascending";
+    js:fetch [
+        a js:FetchConfig;
+        js:safe true;
+        js:concurrent 2;
+        js:retry [
+            a js:FetchRetry;
+            js:maxRetry 30;
+            js:code 404, 408, 410, 425, 429, 500, 502, 503, 504;
+        ];
+    ].
 
 
 # Processor to write an LDES to disk for replication.
 [ ] a js:WriteReplication;
-    js:incoming <sds/reader>;
+    js:incoming <ldes/reader>;
     js:append false;
-    js:savePath <./replication-data.txt>.
+    js:savePath <./replication-data-marineregions-asc.txt>;
+    js:max [
+               a rdfl:EnvVariable;
+               rdfl:envDefault 0;
+               rdfl:envKey "MAX"
+           ].
