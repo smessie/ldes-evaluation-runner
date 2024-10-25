@@ -1,7 +1,11 @@
-import { enhanced_fetch, replicateLDES } from "ldes-client";
+import { enhanced_fetch, Ordered, replicateLDES } from "ldes-client";
 
 const expectedCount = parseInt(process.argv[2]) || 1000;
 const pollInterval = parseInt(process.argv[3]) || 200;
+let order: Ordered | undefined;
+if (process.argv[4] === "ascending" || process.argv[4] === "descending" || process.argv[4] === "none") {
+    order = process.argv[4] as Ordered;
+}
 
 // Wait till the LDES is online
 let online = false;
@@ -19,7 +23,7 @@ const ldesClient = replicateLDES({
     fetch: enhanced_fetch({
         safe: true,
     }),
-});
+}, order);
 
 console.log(`Expecting ${expectedCount} elements`);
 

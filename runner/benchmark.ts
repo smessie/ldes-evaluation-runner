@@ -9,7 +9,7 @@ export async function runBenchmarkIteration(
     // Start the child process executing the code we want to benchmark
     let args: string[] = [];
     if (config.type === "UPDATING_LDES" || config.type === "STATIC_LDES") {
-        args = [config.expectedCount.toString(), config.pollInterval.toString()];
+        args = [config.expectedCount.toString(), config.pollInterval.toString(), config.clientOrder];
     }
 
     // Start collecting server and proxy metrics
