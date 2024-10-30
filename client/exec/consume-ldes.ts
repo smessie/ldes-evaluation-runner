@@ -1,23 +1,24 @@
 import { enhanced_fetch, Ordered, replicateLDES } from "ldes-client";
 
-const expectedCount = parseInt(process.argv[2]) || 1000;
-const pollInterval = parseInt(process.argv[3]) || 200;
+const serverHostname = process.argv[2] || "localhost";
+const expectedCount = parseInt(process.argv[3]) || 1000;
+const pollInterval = parseInt(process.argv[4]) || 200;
 let order: Ordered | undefined;
-if (process.argv[4] === "ascending" || process.argv[4] === "descending" || process.argv[4] === "none") {
-    order = process.argv[4] as Ordered;
+if (process.argv[5] === "ascending" || process.argv[5] === "descending" || process.argv[5] === "none") {
+    order = process.argv[5] as Ordered;
 }
 
 // Wait till the LDES is online
 let online = false;
 while (!online) {
     try {
-        const response = await fetch("http://localhost:3000/ldes/default");
+        const response = await fetch(`http://${serverHostname}:3000/ldes/default`);
         online = response.ok;
     } catch (_) {}
 }
 
 const ldesClient = replicateLDES({
-    url: "http://localhost:3000/ldes/default",
+    url: `http://${serverHostname}:3000/ldes/default`,
     polling: true,
     pollInterval: pollInterval,
     fetch: enhanced_fetch({

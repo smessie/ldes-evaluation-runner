@@ -7,11 +7,12 @@ import { initiateDistribution, startClients, stopDistribution } from "./distribu
 async function main() {
     // Get env file from first argument
     if (process.argv.length < 4) {
-        console.error("Usage: node runner <env-file> <output-file>");
+        console.error("Usage: node runner <env-file> <output-file> <server-hostname=localhost>");
         process.exit(1);
     }
     const envFile = process.argv[2];
     const outputFile = process.argv[3];
+    const serverHostname = process.argv[4] || "localhost";
 
     // Read the env file
     dotenv.config({ path: envFile });
@@ -22,7 +23,7 @@ async function main() {
     const iterations = parseInt(process.env.ITERATIONS || "");
     const numClients = parseInt(process.env.NUM_CLIENTS || "1");
     const benchmarkType = process.env.TYPE || "";
-    const config: any = { type: benchmarkType };
+    const config: any = { type: benchmarkType, serverHostname: serverHostname };
     if (benchmarkType === "UPDATING_LDES" || benchmarkType === "STATIC_LDES") {
         checkEnvVars(["EXPECTED_COUNT", "POLL_INTERVAL", "CLIENT_ORDER"]);
         config.expectedCount = parseInt(process.env.EXPECTED_COUNT || "");
@@ -36,14 +37,14 @@ async function main() {
         console.log("Starting static LDES benchmark");
 
         // Start the required services
-        await setup(envFile);
+        await setup(envFile, serverHostname);
 
         // Wait for the services to be online
-        await awaitOnline();
+        await awaitOnline(serverHostname);
 
         // Wait for the LDES to contain the expected number of members
         console.log(`Waiting for the LDES to contain ${config.expectedCount} members`);
-        await awaitMemberCount(config.expectedCount);
+        await awaitMemberCount(config.expectedCount, serverHostname);
 
         // Warmup rounds
         const warmupRounds = parseInt(process.env.WARMUP_ROUNDS || "");
@@ -65,13 +66,13 @@ async function main() {
         let instancesInitialized;
         if (benchmarkType === "UPDATING_LDES") {
             // Start the clients before the ingestion starts
-            instancesInitialized = startClients(numClients, execFile, [config.expectedCount.toString(), config.pollInterval.toString()]);
+            instancesInitialized = startClients(numClients, execFile, [serverHostname, config.expectedCount.toString(), config.pollInterval.toString()]);
 
             // Start the required services
-            await setup(envFile);
+            await setup(envFile, serverHostname);
 
             // Wait for the services to be online
-            await awaitOnline();
+            await awaitOnline(serverHostname);
         }
 
         // Run the benchmark
