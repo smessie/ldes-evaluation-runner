@@ -15,7 +15,7 @@ export async function initiateDistribution() {
     ipc.config.id = "server";
     ipc.config.silent = true;
 
-    ipc.serveNet(() => {
+    ipc.serveNet("0.0.0.0", 8000, () => {
         ipc.server.on("connect", (socket) => {
             // Called when a client connects to the server.
             console.log("new client connected", socket.remoteAddress, socket.remotePort);
