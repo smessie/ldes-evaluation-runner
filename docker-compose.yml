@@ -89,6 +89,7 @@ services:
       - PAGE_SIZE=${PAGE_SIZE}
       - DATABASE_URL=${DATABASE_URL}
       - METADATA_FILE=${METADATA_FILE}
+      - UNORDERED_RELATIONS=${UNORDERED_RELATIONS}
     volumes:
       - ${REPLICATION_DATA:-./setup/replication-data.txt}:/opt/pipeline/data/replication-data.txt
     logging:
