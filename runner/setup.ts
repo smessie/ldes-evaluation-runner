@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url); // get the resolved path to t
 const __dirname = path.dirname(__filename); // get the name of the directory
 
 export async function setup(envFile: string, serverHostname: string) {
-    await compose.upAll({ cwd: path.join(__dirname), log: false, composeOptions: ["--env-file", envFile, '-e', `SERVER_HOSTNAME=${serverHostname}`] });
+    await compose.upAll({ cwd: path.join(__dirname), log: false, composeOptions: ["--env-file", envFile], env: { SERVER_HOSTNAME: serverHostname } });
 }
 
 export async function awaitOnline(serverHostname: string) {
