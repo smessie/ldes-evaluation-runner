@@ -1,4 +1,4 @@
 node_modules
-replication-data.txt
+replication-data*.txt
 lib/
 out/
