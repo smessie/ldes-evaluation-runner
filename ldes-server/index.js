@@ -6,6 +6,10 @@ async function run(argv) {
     if (process.env.DATABASE_URL) {
         variableBindings["urn:solid-server:default:db-url"] = process.env.DATABASE_URL;
     }
+    if (process.env.SERVER_HOSTNAME) {
+        variableBindings["urn:solid-server:default:ldes-url"] = `http://${process.env.SERVER_HOSTNAME}:3000/ldes`;
+        variableBindings["urn:solid-server:default:view-url"] = `http://${process.env.SERVER_HOSTNAME}:3000/ldes/#fragmentation`;
+    }
 
     // Get -c or --config value
     let configValue;

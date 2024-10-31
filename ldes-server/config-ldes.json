@@ -69,7 +69,9 @@
             "@type": "RepresentationConvertingStore",
             "source": {
               "@type": "LDESStore",
-              "id": "http://localhost:3000/ldes",
+              "id": {
+                "@id": "urn:solid-server:default:ldes-url"
+              },
               "base": {
                 "@id": "urn:solid-server:default:variable:baseUrl"
               },
@@ -83,7 +85,9 @@
                   "prefix": "default",
                   "view": {
                     "@type": "SDSView",
-                    "descriptionId": "http://localhost:3000/ldes/#timestampFragmentation",
+                    "descriptionId": {
+                      "@id": "urn:solid-server:default:view-url"
+                    },
                     "streamId": "http://example.org/BenchmarkStream",
                     "db": {
                       "@id": "urn:solid-server:default:DBConfig"
@@ -131,6 +135,14 @@
     },
     {
       "@id": "urn:solid-server:default:db-url",
+      "@type": "Variable"
+    },
+    {
+      "@id": "urn:solid-server:default:ldes-url",
+      "@type": "Variable"
+    },
+    {
+      "@id": "urn:solid-server:default:view-url",
       "@type": "Variable"
     }
   ]

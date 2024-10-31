@@ -25,4 +25,4 @@ ex:BenchmarkStream
                             dcat:publisher     <http://solid.smessie.com/profile/card#me> ;
                             ldes:timestampPath dct:modified;
                             ldes:versionOfPath dct:isVersionOf;
-                            dcat:identifier    <http://localhost:3000/ldes> ] .
+                            dcat:identifier    <http://${SERVER_HOSTNAME}:3000/ldes> ] .

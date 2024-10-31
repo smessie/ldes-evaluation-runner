@@ -44,6 +44,7 @@ services:
     command: -b http://${SERVER_HOSTNAME:-localhost}:3000
     environment:
       - DATABASE_URL=${DATABASE_URL}
+      - SERVER_HOSTNAME=${SERVER_HOSTNAME:-localhost}
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://${SERVER_HOSTNAME:-localhost}:3000
       interval: 30s
@@ -90,6 +91,7 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - METADATA_FILE=${METADATA_FILE}
       - UNORDERED_RELATIONS=${UNORDERED_RELATIONS}
+      - SERVER_HOSTNAME=${SERVER_HOSTNAME:-localhost}
     volumes:
       - ${REPLICATION_DATA:-./setup/replication-data.txt}:/opt/pipeline/data/replication-data.txt
     logging:

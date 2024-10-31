@@ -22,12 +22,19 @@
 # Channel definitions
 #########################################
 
-# Channel for js:GlobRead → js:Bucketize (metadata)
+# Channel for js:GlobRead → js:Envsub (metadata)
 <metadata/writer> a js:JsWriterChannel.
 <metadata/reader> a js:JsReaderChannel.
 [ ] a js:JsChannel;
     :reader <metadata/reader>;
     :writer <metadata/writer>.
+
+# Channel for js:Envsub → js:Bucketize (metadata)
+<metadata/substituted/writer> a js:JsWriterChannel.
+<metadata/substituted/reader> a js:JsReaderChannel.
+[ ] a js:JsChannel;
+    :reader <metadata/substituted/reader>;
+    :writer <metadata/substituted/writer>.
 
 # Channel for js:Bucketize → js:Ingest (metadata)
 <metadata/bucketized/writer> a js:JsWriterChannel.
@@ -79,6 +86,11 @@
     js:output <metadata/writer>;
     js:closeOnEnd "true"^^xsd:boolean.
 
+# Processor to substitute environment variables in the metadata
+[ ] a js:Envsub;
+    js:input <metadata/reader>;
+    js:output <metadata/substituted/writer>.
+
 # Processor to read and stream out a replication of an on disk saved stream.
 [ ] a js:ReadReplication;
     js:outgoing <ldes-raw/writer>;
@@ -119,7 +131,7 @@
     js:channels [
           js:dataInput <logged/reader>;
           js:dataOutput <bucketized/writer>;
-          js:metadataInput <metadata/reader>;
+          js:metadataInput <metadata/substituted/reader>;
           js:metadataOutput <metadata/bucketized/writer>;
       ];
     js:bucketizeStrategy ( [
