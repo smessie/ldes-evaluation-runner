@@ -9,11 +9,11 @@ export async function runBenchmarkIteration(
     // Start the child process executing the code we want to benchmark
     let args: string[] = [];
     if (config.type === "UPDATING_LDES" || config.type === "STATIC_LDES") {
-        args = [config.serverHostname, config.expectedCount.toString(), config.pollInterval.toString(), config.clientOrder];
+        args = [config.serverHostname, config.expectedCount.toString(), config.pollInterval.toString(), config.clientOrder, config.intervalMs.toString()];
     }
 
     // Start collecting server and proxy metrics
-    const metrics = collectMetrics(1000);
+    const metrics = collectMetrics(config.intervalMs);
 
     // Start the clients if not UPDATING_LDES (then the clients are already started)
     let instancesInitialized;
@@ -142,6 +142,18 @@ function readableFormatToBytes(value: string): number {
 }
 
 function statsToLoad(stats: { cpu: number; memory: number; networkInput?: number; networkOutput?: number }[]): Load {
+    if (stats.length === 0) {
+        return {
+            avgCpu: 0,
+            avgMemory: 0,
+            maxCpu: 0,
+            maxMemory: 0,
+            meanCpu: 0,
+            meanMemory: 0,
+            networkInput: 0,
+            networkOutput: 0,
+        };
+    }
     const avgCpu = stats.reduce((acc, val) => acc + val.cpu, 0) / stats.length;
     const avgMemory = stats.reduce((acc, val) => acc + val.memory, 0) / stats.length;
     const maxCpu = stats.reduce((acc, val) => Math.max(acc, val.cpu), 0);

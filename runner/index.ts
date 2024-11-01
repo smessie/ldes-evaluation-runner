@@ -25,10 +25,11 @@ async function main() {
     const benchmarkType = process.env.TYPE || "";
     const config: any = { type: benchmarkType, serverHostname: serverHostname };
     if (benchmarkType === "UPDATING_LDES" || benchmarkType === "STATIC_LDES") {
-        checkEnvVars(["EXPECTED_COUNT", "POLL_INTERVAL", "CLIENT_ORDER"]);
+        checkEnvVars(["EXPECTED_COUNT", "POLL_INTERVAL", "CLIENT_ORDER", "COLLECT_METRICS_INTERVAL"]);
         config.expectedCount = parseInt(process.env.EXPECTED_COUNT || "");
         config.pollInterval = parseInt(process.env.POLL_INTERVAL || "");
         config.clientOrder = process.env.CLIENT_ORDER;
+        config.intervalMs = parseInt(process.env.COLLECT_METRICS_INTERVAL || "");
     }
 
     await initiateDistribution();

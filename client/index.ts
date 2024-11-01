@@ -95,7 +95,7 @@ async function startClients(numClients: number, file: string, args: string[]) {
     // Start collecting metrics
     const metrics = collectMetrics(
         children.map((c) => c.child),
-        1000,
+        parseInt(args[4] || "100"),
     );
 
     // Wait for the child processes to finish
