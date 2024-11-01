@@ -25,11 +25,12 @@ async function main() {
     const benchmarkType = process.env.TYPE || "";
     const config: any = { type: benchmarkType, serverHostname: serverHostname };
     if (benchmarkType === "UPDATING_LDES" || benchmarkType === "STATIC_LDES") {
-        checkEnvVars(["EXPECTED_COUNT", "POLL_INTERVAL", "CLIENT_ORDER", "COLLECT_METRICS_INTERVAL"]);
+        checkEnvVars(["EXPECTED_COUNT", "POLL_INTERVAL", "CLIENT_ORDER", "COLLECT_METRICS_INTERVAL", "CLIENT_LAST_VERSION_ONLY"]);
         config.expectedCount = parseInt(process.env.EXPECTED_COUNT || "");
         config.pollInterval = parseInt(process.env.POLL_INTERVAL || "");
         config.clientOrder = process.env.CLIENT_ORDER;
         config.intervalMs = parseInt(process.env.COLLECT_METRICS_INTERVAL || "");
+        config.clientLastVersionOnly = process.env.CLIENT_LAST_VERSION_ONLY === "true";
     }
 
     await initiateDistribution();
@@ -67,7 +68,7 @@ async function main() {
         let instancesInitialized;
         if (benchmarkType === "UPDATING_LDES") {
             // Start the clients before the ingestion starts
-            instancesInitialized = startClients(numClients, execFile, [serverHostname, config.expectedCount.toString(), config.pollInterval.toString()]);
+            instancesInitialized = startClients(numClients, execFile, [serverHostname, config.expectedCount.toString(), config.pollInterval.toString(), config.clientOrder, config.intervalMs.toString(), config.clientLastVersionOnly.toString()]);
 
             // Start the required services
             await setup(envFile, serverHostname);

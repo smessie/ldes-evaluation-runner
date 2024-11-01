@@ -7,6 +7,7 @@ let order: Ordered | undefined;
 if (process.argv[5] === "ascending" || process.argv[5] === "descending" || process.argv[5] === "none") {
     order = process.argv[5] as Ordered;
 }
+const lastVersionOnly = process.argv[7] === "true";
 
 // Wait till the LDES is online
 let online = false;
@@ -24,6 +25,7 @@ const ldesClient = replicateLDES({
     fetch: enhanced_fetch({
         safe: true,
     }),
+    lastVersionOnly: lastVersionOnly,
 }, order);
 
 console.log(`Expecting ${expectedCount} elements`);
