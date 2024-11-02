@@ -24,6 +24,9 @@ const ldesClient = replicateLDES({
     pollInterval: pollInterval,
     fetch: enhanced_fetch({
         safe: true,
+        retry: {
+            maxRetries: 20,
+        }
     }),
     lastVersionOnly: lastVersionOnly,
 }, order);
