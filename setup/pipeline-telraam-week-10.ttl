@@ -1,0 +1,61 @@
+@prefix js: <https://w3id.org/conn/js#>.
+@prefix : <https://w3id.org/conn#>.
+@prefix owl: <http://www.w3.org/2002/07/owl#>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+@prefix tree: <https://w3id.org/tree#>.
+@prefix as: <https://www.w3.org/ns/activitystreams#>.
+@prefix ex: <http://example.org/>.
+@prefix rdfl: <https://w3id.org/rdf-lens/ontology#>.
+@prefix prov: <http://www.w3.org/ns/prov#> .
+
+<> owl:imports <./node_modules/@rdfc/js-runner/ontology.ttl>.
+<> owl:imports <./node_modules/@rdfc/js-runner/channels/file.ttl>.
+<> owl:imports <./node_modules/@rdfc/replication-processor-ts/processor.ttl>.
+<> owl:imports <./node_modules/@rdfc/sds-processors-ts/configs/sdsify.ttl>.
+<> owl:imports <./custom-ldes-harvester-processor/processor.ttl>.
+
+#########################################
+# Channel definitions
+#########################################
+
+# Channel for js:LdesClient → js:Sdsify
+<ldes/reader> a js:JsReaderChannel.
+<ldes/writer> a js:JsWriterChannel.
+[ ] a js:JsChannel;
+    :reader <ldes/reader>;
+    :writer <ldes/writer>.
+
+# Channel for js:Sdsify → js:WriteReplication
+<sds/reader> a js:JsReaderChannel.
+<sds/writer> a js:JsWriterChannel.
+[ ] a js:JsChannel;
+    :reader <sds/reader>;
+    :writer <sds/writer>.
+
+#########################################
+# Processor definitions
+#########################################
+
+# Processor to read member events from a LDES
+[ ] a js:LdesHarvester;
+    js:outgoing <ldes/writer>;
+    js:url "https://telraam-api.net/ldes/observations/by-time";
+    js:start "2024-03-01T00:00:00Z"^^xsd:dateTime;
+    js:end "2024-03-08T00:00:00Z"^^xsd:dateTime;
+    js:interval 3600000;
+    js:amountPerInterval 10.
+
+
+# Processor to describe every entity as part of a SDS stream for further processing
+[ ] a js:Sdsify;
+    js:input <ldes/reader>;
+    js:output <sds/writer>;
+    js:stream ex:BenchmarkStream;
+    js:timestampPath prov:generatedAtTime.
+
+
+# Processor to write an LDES to disk for replication.
+[ ] a js:WriteReplication;
+    js:incoming <sds/reader>;
+    js:append false;
+    js:savePath <./replication-data-telraam-week-10.txt>.
