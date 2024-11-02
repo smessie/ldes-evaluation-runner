@@ -10,6 +10,8 @@ for env_file in "$ENV_DIR_TELRAAM_REPLICATION"/*.env; do
     out_file="$OUT_DIR_TELRAAM_REPLICATION/${base_name}.json"
 
     node runner "$env_file" "$out_file" "$SERVER_HOSTNAME"
+
+    docker compose down
 done
 
 
@@ -23,4 +25,6 @@ for env_file in "$ENV_DIR_TELRAAM_SYNCHRONIZATION"/*.env; do
     out_file="$OUT_DIR_TELRAAM_SYNCHRONIZATION/${base_name}.json"
 
     node runner "$env_file" "$out_file" "$SERVER_HOSTNAME"
+
+    docker compose down
 done
