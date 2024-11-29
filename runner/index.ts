@@ -18,24 +18,30 @@ async function main() {
     dotenv.config({ path: envFile });
 
     // Get the parameters from the environment
-    checkEnvVars(["EXEC_FILE", "ITERATIONS", "TYPE"]);
+    checkEnvVars(["EXEC_FILE", "ITERATIONS", "TYPE", "COLLECT_METRICS_INTERVAL"]);
     const execFile = process.env.EXEC_FILE || "";
     const iterations = parseInt(process.env.ITERATIONS || "");
     const numClients = parseInt(process.env.NUM_CLIENTS || "1");
+    const intervalMs = parseInt(process.env.COLLECT_METRICS_INTERVAL || "");
     const benchmarkType = process.env.TYPE || "";
-    const config: any = { type: benchmarkType, serverHostname: serverHostname };
+    const config: any = { type: benchmarkType, serverHostname: serverHostname, intervalMs: intervalMs };
     if (benchmarkType === "UPDATING_LDES" || benchmarkType === "STATIC_LDES") {
-        checkEnvVars(["EXPECTED_COUNT", "POLL_INTERVAL", "CLIENT_ORDER", "COLLECT_METRICS_INTERVAL", "CLIENT_LAST_VERSION_ONLY"]);
+        checkEnvVars(["EXPECTED_COUNT", "POLL_INTERVAL", "CLIENT_ORDER", "CLIENT_LAST_VERSION_ONLY"]);
         config.expectedCount = parseInt(process.env.EXPECTED_COUNT || "");
         config.pollInterval = parseInt(process.env.POLL_INTERVAL || "");
         config.clientOrder = process.env.CLIENT_ORDER;
-        config.intervalMs = parseInt(process.env.COLLECT_METRICS_INTERVAL || "");
         config.clientLastVersionOnly = process.env.CLIENT_LAST_VERSION_ONLY === "true";
+    } else if (benchmarkType === "EXTRACT_MEMBERS") {
+        checkEnvVars(["EXPECTED_COUNT", "LDES_PAGE", "CBD_SPECIFY_SHAPE", "CBD_DEFAULT_GRAPH"]);
+        config.expectedCount = parseInt(process.env.EXPECTED_COUNT || "");
+        config.ldesPage = process.env.LDES_PAGE || '';
+        config.cbdSpecifyShape = process.env.CBD_SPECIFY_SHAPE === "true";
+        config.cbdDefaultGraph = process.env.CBD_DEFAULT_GRAPH === "true";
     }
 
     await initiateDistribution();
 
-    if (benchmarkType === "STATIC_LDES") {
+    if (benchmarkType === "STATIC_LDES" || benchmarkType === "EXTRACT_MEMBERS") {
         console.log("Starting static LDES benchmark");
 
         // Start the required services
@@ -68,7 +74,7 @@ async function main() {
         let instancesInitialized;
         if (benchmarkType === "UPDATING_LDES") {
             // Start the clients before the ingestion starts
-            instancesInitialized = startClients(numClients, execFile, [serverHostname, config.expectedCount.toString(), config.pollInterval.toString(), config.clientOrder, config.intervalMs.toString(), config.clientLastVersionOnly.toString()]);
+            instancesInitialized = startClients(numClients, execFile, intervalMs, [serverHostname, config.expectedCount.toString(), config.pollInterval.toString(), config.clientOrder, config.clientLastVersionOnly.toString()]);
 
             // Start the required services
             await setup(envFile, serverHostname);
@@ -105,7 +111,7 @@ async function main() {
         }
     }
 
-    if (benchmarkType === "STATIC_LDES") {
+    if (benchmarkType === "STATIC_LDES" || benchmarkType === "EXTRACT_MEMBERS") {
         // Cleanup the services
         await cleanup();
     }

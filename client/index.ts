@@ -39,12 +39,12 @@ async function main() {
 
         ipc.of.server.on("start", async (data) => {
             console.log(`Starting ${data.clients} clients with file ${data.file} and args ${data.args}`);
-            await startClients(data.clients, data.file, data.args);
+            await startClients(data.clients, data.file, data.intervalMs, data.args);
         });
     });
 }
 
-async function startClients(numClients: number, file: string, args: string[]) {
+async function startClients(numClients: number, file: string, intervalMs: number, args: string[]) {
     const children: {
         child: ChildProcess;
         promise: Promise<{
@@ -95,7 +95,7 @@ async function startClients(numClients: number, file: string, args: string[]) {
     // Start collecting metrics
     const metrics = collectMetrics(
         children.map((c) => c.child),
-        parseInt(args[4] || "100"),
+        intervalMs,
     );
 
     // Wait for the child processes to finish

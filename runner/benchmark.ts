@@ -9,7 +9,9 @@ export async function runBenchmarkIteration(
     // Start the child process executing the code we want to benchmark
     let args: string[] = [];
     if (config.type === "UPDATING_LDES" || config.type === "STATIC_LDES") {
-        args = [config.serverHostname, config.expectedCount.toString(), config.pollInterval.toString(), config.clientOrder, config.intervalMs.toString(), config.clientLastVersionOnly.toString()];
+        args = [config.serverHostname, config.expectedCount.toString(), config.pollInterval.toString(), config.clientOrder, config.clientLastVersionOnly.toString()];
+    } else if (config.type === "EXTRACT_MEMBERS") {
+        args = [config.ldesPage, config.cbdSpecifyShape.toString(), config.cbdDefaultGraph.toString()];
     }
 
     // Start collecting server and proxy metrics
@@ -18,7 +20,7 @@ export async function runBenchmarkIteration(
     // Start the clients if not UPDATING_LDES (then the clients are already started)
     let instancesInitialized;
     if (config.type !== "UPDATING_LDES") {
-        instancesInitialized = startClients(numClients, file, args);
+        instancesInitialized = startClients(numClients, file, config.intervalMs, args);
     } else {
         instancesInitialized = numClients;
     }
@@ -39,7 +41,7 @@ export async function runBenchmarkIteration(
     const serverLoad: Load = statsToLoad(metricsResult.serverStats);
     const proxyLoad: Load = statsToLoad(metricsResult.proxyStats);
 
-    if (config.type === "UPDATING_LDES" || config.type === "STATIC_LDES") {
+    if (config.type === "UPDATING_LDES" || config.type === "STATIC_LDES" || config.type === "EXTRACT_MEMBERS") {
         return new BenchmarkResult(
             time,
             clientLoad,

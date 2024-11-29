@@ -64,7 +64,7 @@ export function stopDistribution() {
     });
 }
 
-export function startClients(numClients: number, file: string, args: string[]): number {
+export function startClients(numClients: number, file: string, intervalMs: number, args: string[]): number {
     results = [];
 
     let clientsToStart: number = numClients;
@@ -75,7 +75,7 @@ export function startClients(numClients: number, file: string, args: string[]): 
         clientsToStart -= clientsForInstance;
         if (clientsForInstance > 0) {
             instancesInitialized++;
-            ipc.server.emit(client.socket, "start", { clients: clientsForInstance, file, args });
+            ipc.server.emit(client.socket, "start", { clients: clientsForInstance, file, intervalMs, args });
         }
     }
     return instancesInitialized;
