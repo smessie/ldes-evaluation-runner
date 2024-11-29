@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import ipc from "node-ipc";
 import { ChildProcess, fork } from "node:child_process";
 import pidusage from "pidusage";

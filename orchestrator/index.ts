@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { awaitMemberCount, awaitOnline, cleanup, ensureCleanup, setup } from "./setup";
 import { runBenchmarkIteration } from "./benchmark";
 import dotenv from "dotenv";
