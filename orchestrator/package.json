@@ -1,5 +1,5 @@
 {
-  "name": "ldes-evaluation-runner",
+  "name": "ldes-evaluation-runner-orchestrator",
   "version": "1.0.0",
   "description": "",
   "main": "lib/index.js",

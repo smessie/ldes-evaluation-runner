@@ -35,12 +35,12 @@ npm run build
 ```
 
 
-### Build the runner
+### Build the orchestrator
 
-After the client has been built, you can build the runner by running:
+After the client has been built, you can build the orchestrator by running:
 
 ```bash
-cd runner
+cd orchestrator
 npm install
 npm run build
 ```
@@ -88,8 +88,8 @@ To run the benchmark, execute the following commands:
 # Run as many client runners as you want, optionally on different machines.
 node client <name> <server-hostname>
 
-# Run the benchmark runner, this will start the benchmark and use the client runners.
-node runner <env-file> <output-file>
+# Run the benchmark orchestrator, this will start the benchmark and use the client runners.
+node orchestrator <env-file> <output-file>
 ```
 
 `<env-file>` should be the absolute path to the `.env` file you want to use.
