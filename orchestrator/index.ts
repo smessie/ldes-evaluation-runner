@@ -19,6 +19,13 @@ async function main() {
     // Read the env file
     dotenv.config({ path: envFile });
 
+    // Loop over environment parameters and replace `{CWD}` with process.cwc().
+    for (const key in process.env) {
+        if (process.env[key]) {
+            process.env[key] = process.env[key].replace("{CWD}", process.cwd());
+        }
+    }
+
     // Get the parameters from the environment
     checkEnvVars(["EXEC_FILE", "ITERATIONS", "TYPE", "COLLECT_METRICS_INTERVAL"]);
     const execFile = process.env.EXEC_FILE || "";
