@@ -14,7 +14,7 @@ async function main() {
     }
     const envFile = process.argv[2];
     const outputFile = process.argv[3];
-    const serverHostname = process.argv[4] || "localhost";
+    const serverHostname = process.argv[4] || "127.0.0.1";
 
     // Read the env file
     dotenv.config({ path: envFile });
@@ -43,7 +43,7 @@ async function main() {
     } else if (benchmarkType === "EXTRACT_MEMBERS") {
         checkEnvVars(["EXPECTED_COUNT", "LDES_PAGE", "CBD_SPECIFY_SHAPE", "CBD_DEFAULT_GRAPH"]);
         config.expectedCount = parseInt(process.env.EXPECTED_COUNT || "");
-        config.ldesPage = process.env.LDES_PAGE || '';
+        config.ldesPage = (process.env.LDES_PAGE || '').replace("{SERVER_HOSTNAME}", serverHostname);
         config.cbdSpecifyShape = process.env.CBD_SPECIFY_SHAPE === "true";
         config.cbdDefaultGraph = process.env.CBD_DEFAULT_GRAPH === "true";
     }
