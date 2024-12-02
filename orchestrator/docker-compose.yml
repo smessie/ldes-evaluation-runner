@@ -39,7 +39,7 @@ services:
       - ldes
   ldes-server:
     container_name: ldes-server
-    build: ../ldes-server
+    build: https://raw.githubusercontent.com/smessie/ldes-evaluation-runner/refs/heads/main/ldes-server/Dockerfile
     restart: always
     command: -b http://${SERVER_HOSTNAME:-localhost}:3000
     environment:
@@ -81,7 +81,7 @@ services:
         condition: service_healthy
   ingest-server:
     container_name: ingest-server
-    build: ../ingest-server
+    build: https://raw.githubusercontent.com/smessie/ldes-evaluation-runner/refs/heads/main/ingest-server/Dockerfile
     entrypoint: [ "npx", "js-runner", "${INGEST_PIPELINE:-pipeline.ttl}" ]
     environment:
       # - DEBUG=*
