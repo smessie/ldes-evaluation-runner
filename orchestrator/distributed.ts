@@ -36,7 +36,7 @@ export async function initiateDistribution() {
 
         ipc.server.on("results", (data, socket) => {
             // Called when a client sends results to the server.
-            console.log("Got results from client", data, socket.remoteAddress, socket.remotePort);
+            console.log("Got results from client", socket.remoteAddress, socket.remotePort);
             results.push(data);
         });
     });
