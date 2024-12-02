@@ -81,7 +81,7 @@ services:
         condition: service_healthy
   ingest-server:
     container_name: ingest-server
-    build: https://raw.githubusercontent.com/smessie/ldes-evaluation-runner/refs/heads/main/ingest-server/Dockerfile
+    image: smessie/ldes-evaluation-runner-ingest-server:latest
     entrypoint: [ "npx", "js-runner", "${INGEST_PIPELINE:-pipeline.ttl}" ]
     environment:
       # - DEBUG=*
