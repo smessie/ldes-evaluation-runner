@@ -82,18 +82,18 @@ services:
   ingest-server:
     container_name: ingest-server
     image: smessie/ldes-evaluation-runner-ingest-server:latest
-    entrypoint: [ "npx", "js-runner", "${INGEST_PIPELINE:-pipeline.ttl}" ]
     environment:
       # - DEBUG=*
       - INTERVAL=${INTERVAL}
       - AMOUNT_PER_INTERVAL=${AMOUNT_PER_INTERVAL}
       - PAGE_SIZE=${PAGE_SIZE}
       - DATABASE_URL=${DATABASE_URL}
-      - METADATA_FILE=${METADATA_FILE}
       - UNORDERED_RELATIONS=${UNORDERED_RELATIONS}
       - SERVER_HOSTNAME=${SERVER_HOSTNAME:-localhost}
     volumes:
       - ${REPLICATION_DATA:-./setup/replication-data.txt}:/opt/pipeline/data/replication-data.txt
+      - ${METADATA_FILE:-./ingest-server/metadata.ttl}:/opt/pipeline/metadata.ttl
+      - ${INGEST_PIPELINE:-./ingest-server/pipeline.ttl}:/opt/pipeline/pipeline.ttl
     logging:
       driver: "json-file"
       options:
