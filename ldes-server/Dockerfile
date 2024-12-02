@@ -8,7 +8,7 @@ WORKDIR /ldes-solid-server
 COPY . .
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Open TCP port 3000
 EXPOSE 3000
