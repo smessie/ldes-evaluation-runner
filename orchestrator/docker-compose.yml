@@ -39,7 +39,7 @@ services:
       - ldes
   ldes-server:
     container_name: ldes-server
-    build: https://raw.githubusercontent.com/smessie/ldes-evaluation-runner/refs/heads/main/ldes-server/Dockerfile
+    image: smessie/ldes-evaluation-runner-ldes-server:latest
     restart: always
     command: -b http://${SERVER_HOSTNAME:-localhost}:3000
     environment:
