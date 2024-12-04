@@ -297,6 +297,20 @@
                     :formatter="bytesToReadableXB"
                 />
             </MDBCol>
+            <!--<MDBCol md="6">
+                <BoxPlot
+                    id="member-latency-boxplot"
+                    title="Member Latency"
+                    metric="latency"
+                    load="proxyLoad"
+                    :benchmark-results="benchmarkResults"
+                    :formatter="bytesToReadableXB"
+                />
+            </MDBCol>-->
+        </MDBRow>
+
+        <MDBRow v-if="benchmarkResults.length >=3" class="mb-5">
+            <GroupedColumnChart :benchmark-results="benchmarkResults.map(bList => { return {name: bList[0].name || '', time: bList.map(b => b.time).reduce((a, b) => a + b, 0) / bList.length}})" />
         </MDBRow>
     </div>
 </template>
@@ -321,10 +335,12 @@ import VueApexCharts from "vue3-apexcharts";
 import MetricOverTime from "@/components/MetricOverTime.vue";
 import CoefficientOfVariation from "@/components/CoefficientOfVariation.vue";
 import BoxPlot from "@/components/BoxPlot.vue";
+import GroupedColumnChart from "@/components/GroupedColumnChart.vue";
 
 export default defineComponent({
     name: "Visualizer",
     components: {
+        GroupedColumnChart,
         BoxPlot,
         CoefficientOfVariation,
         MetricOverTime,
