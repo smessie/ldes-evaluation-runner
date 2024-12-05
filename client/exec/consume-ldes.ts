@@ -29,6 +29,7 @@ const ldesClient = replicateLDES({
         }
     }),
     lastVersionOnly: lastVersionOnly,
+    includeMetadata: true,
 }, order);
 
 console.log(`Expecting ${expectedCount} elements`);
