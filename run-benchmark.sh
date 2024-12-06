@@ -11,7 +11,7 @@ for env_file in "$ENV_DIR_TELRAAM_REPLICATION"/*.env; do
 
     NODE_OPTIONS=--max-old-space-size=20480 node orchestrator "$env_file" "$out_file" "$SERVER_HOSTNAME"
 
-    docker compose down
+    docker compose -f orchestrator/docker-compose.yml down
 done
 
 
@@ -26,5 +26,5 @@ for env_file in "$ENV_DIR_TELRAAM_SYNCHRONIZATION"/*.env; do
 
     NODE_OPTIONS=--max-old-space-size=20480 node orchestrator "$env_file" "$out_file" "$SERVER_HOSTNAME"
 
-    docker compose down
+    docker compose -f orchestrator/docker-compose.yml down
 done
