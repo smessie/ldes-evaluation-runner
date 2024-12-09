@@ -310,7 +310,7 @@
         </MDBRow>
 
         <MDBRow v-if="benchmarkResults.length >=3" class="mb-5">
-            <GroupedColumnChart :benchmark-results="benchmarkResults.map(bList => { return {name: bList[0].name || '', time: bList.map(b => b.time).reduce((a, b) => a + b, 0) / bList.length}})" />
+            <GroupedColumnChart :benchmark-results="benchmarkResults.map(bList => { return {name: bList[0].name || '', time: Math.round(bList.map(b => b.time).reduce((a, b) => a + b, 0) / bList.length * 1000) / 1000}})" />
         </MDBRow>
     </div>
 </template>
