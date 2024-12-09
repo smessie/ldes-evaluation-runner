@@ -25,7 +25,7 @@ const ldesClient = replicateLDES({
     fetch: enhanced_fetch({
         safe: true,
         retry: {
-            maxRetries: 20,
+            maxRetries: 100,
         }
     }),
     lastVersionOnly: lastVersionOnly,
