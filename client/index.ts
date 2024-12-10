@@ -53,6 +53,7 @@ async function startClients(numClients: number, file: string, intervalMs: number
             resultMembersCount: number;
             resultQuadsCount: number;
             latency: number;
+            memberArrivalTimes: number[];
         }>;
     }[] = [];
 
@@ -66,10 +67,12 @@ async function startClients(numClients: number, file: string, intervalMs: number
             resultMembersCount: number;
             resultQuadsCount: number;
             latency: number;
+            memberArrivalTimes: number[];
         }> = new Promise((resolve, reject) => {
             let resultMembersCount = 0;
             let resultQuadsCount = 0;
             let latency = 0;
+            let memberArrivalTimes: number[] = [];
             child.on("message", (message) => {
                 if (typeof message === "object" && "resultMembers" in message) {
                     resultMembersCount = message.resultMembers as number;
@@ -80,10 +83,13 @@ async function startClients(numClients: number, file: string, intervalMs: number
                 if (typeof message === "object" && "latency" in message) {
                     latency = message.latency as number;
                 }
+                if (typeof message === "object" && "memberArrivalTimes" in message) {
+                    memberArrivalTimes = message.memberArrivalTimes as number[];
+                }
             });
 
             child.on("close", () => {
-                resolve({ resultMembersCount, resultQuadsCount, latency });
+                resolve({ resultMembersCount, resultQuadsCount, latency, memberArrivalTimes });
             });
             child.on("error", reject);
             if (i === 0) {
@@ -105,6 +111,12 @@ async function startClients(numClients: number, file: string, intervalMs: number
     const avgMembersCount = results.reduce((acc, val) => acc + val.resultMembersCount, 0) / results.length;
     const avgQuadsCount = results.reduce((acc, val) => acc + val.resultQuadsCount, 0) / results.length;
     const avgLatency = results.reduce((acc, val) => acc + val.latency, 0) / results.length;
+    const avgMemberArrivalTimes = [];
+    for (let i = 0; i < results[0].memberArrivalTimes.length; i++) {
+        avgMemberArrivalTimes.push(
+            results.reduce((acc, val) => acc + val.memberArrivalTimes[i], 0) / results.length,
+        );
+    }
 
     const metricsResult = metrics();
 
@@ -121,6 +133,7 @@ async function startClients(numClients: number, file: string, intervalMs: number
         avgMembersCount: avgMembersCount,
         avgQuadsCount: avgQuadsCount,
         avgLatency: avgLatency,
+        avgMemberArrivalTimes: avgMemberArrivalTimes,
     });
 }
 

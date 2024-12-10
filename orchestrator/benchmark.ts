@@ -32,6 +32,7 @@ export async function runBenchmarkIteration(
         avgMembersCount,
         avgQuadsCount,
         avgLatency,
+        avgMemberArrivalTimes,
     } = await getResultsFromClients(instancesInitialized);
 
     // Get the server and proxy metrics
@@ -56,6 +57,7 @@ export async function runBenchmarkIteration(
             avgQuadsCount / time,
             avgLatency,
             config.pollInterval,
+            avgMemberArrivalTimes
         );
     } else {
         return new BenchmarkResult(
@@ -66,6 +68,7 @@ export async function runBenchmarkIteration(
             clientStats,
             metricsResult.serverStats,
             metricsResult.proxyStats,
+            undefined,
             undefined,
             undefined,
             undefined,
@@ -205,6 +208,7 @@ export class BenchmarkResult {
     public readonly quadsThroughput?: number;
     public readonly latency?: number;
     public readonly pollInterval?: number;
+    public readonly memberArrivalTimes?: number[];
 
     constructor(
         time: number,
@@ -233,6 +237,7 @@ export class BenchmarkResult {
         quadsThroughput?: number,
         latency?: number,
         pollInterval?: number,
+        memberArrivalTimes?: number[],
     ) {
         this.time = time;
         this.clientLoad = clientLoad;
@@ -247,6 +252,7 @@ export class BenchmarkResult {
         this.quadsThroughput = quadsThroughput;
         this.latency = latency;
         this.pollInterval = pollInterval;
+        this.memberArrivalTimes = memberArrivalTimes;
     }
 }
 
