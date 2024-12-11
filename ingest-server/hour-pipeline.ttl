@@ -1,0 +1,135 @@
+@prefix js: <https://w3id.org/conn/js#>.
+@prefix : <https://w3id.org/conn#>.
+@prefix owl: <http://www.w3.org/2002/07/owl#>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+@prefix tree: <https://w3id.org/tree#>.
+@prefix ex: <http://example.org/>.
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix verkeersmetingen: <https://data.vlaanderen.be/ns/verkeersmetingen#> .
+@prefix rdfl: <https://w3id.org/rdf-lens/ontology#>.
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<> owl:imports <./node_modules/@rdfc/js-runner/ontology.ttl>.
+<> owl:imports <./node_modules/@rdfc/js-runner/channels/file.ttl>.
+<> owl:imports <./node_modules/@rdfc/file-utils-processors-ts/processors.ttl>.
+<> owl:imports <./node_modules/@rdfc/sds-processors-ts/configs/sdsify.ttl>.
+<> owl:imports <./node_modules/@rdfc/sds-processors-ts/configs/bucketizer.ttl>.
+<> owl:imports <./node_modules/@rdfc/sds-storage-writer-ts/processor.ttl>.
+<> owl:imports <./node_modules/@rdfc/replication-processor-ts/processor.ttl>.
+<> owl:imports <./node_modules/@rdfc/buffer-processor-ts/processor.ttl>.
+<> owl:imports <./node_modules/@rdfc/log-processor-ts/processor.ttl>.
+
+#########################################
+# Channel definitions
+#########################################
+
+# Channel for js:GlobRead → js:Envsub (metadata)
+<metadata/writer> a js:JsWriterChannel.
+<metadata/reader> a js:JsReaderChannel.
+[ ] a js:JsChannel;
+    :reader <metadata/reader>;
+    :writer <metadata/writer>.
+
+# Channel for js:Envsub → js:Bucketize (metadata)
+<metadata/substituted/writer> a js:JsWriterChannel.
+<metadata/substituted/reader> a js:JsReaderChannel.
+[ ] a js:JsChannel;
+    :reader <metadata/substituted/reader>;
+    :writer <metadata/substituted/writer>.
+
+# Channel for js:Bucketize → js:Ingest (metadata)
+<metadata/bucketized/writer> a js:JsWriterChannel.
+<metadata/bucketized/reader> a js:JsReaderChannel.
+[ ] a js:JsChannel;
+    :reader <metadata/bucketized/reader>;
+    :writer <metadata/bucketized/writer>.
+
+
+# Channel for js:ReadReplication → js:Bucketize
+<ldes-raw/reader> a js:JsReaderChannel.
+<ldes-raw/writer> a js:JsWriterChannel.
+[ ] a js:JsChannel;
+    :reader <ldes-raw/reader>;
+    :writer <ldes-raw/writer>.
+
+# Channel for js:Bucketize → js:Log
+<bucketized/writer> a js:JsWriterChannel.
+<bucketized/reader> a js:JsReaderChannel.
+[ ] a js:JsChannel;
+    :reader <bucketized/reader>;
+    :writer <bucketized/writer>.
+
+# Channel for js:Log → js:Ingest
+<bucketized/logged/reader> a js:JsReaderChannel.
+<bucketized/logged/writer> a js:JsWriterChannel.
+[ ] a js:JsChannel;
+    :reader <bucketized/logged/reader>;
+    :writer <bucketized/logged/writer>.
+
+#########################################
+# Processor definitions
+#########################################
+
+# File reader channel for metadata input on js:Ingest
+[ ] a js:GlobRead;
+    js:glob [
+                a rdfl:EnvVariable;
+                rdfl:envDefault <./metadata.ttl>;
+                rdfl:envKey "METADATA_FILE"
+            ];
+    js:output <metadata/writer>;
+    js:closeOnEnd "true"^^xsd:boolean.
+
+# Processor to substitute environment variables in the metadata
+[ ] a js:Envsub;
+    js:input <metadata/reader>;
+    js:output <metadata/substituted/writer>.
+
+# Processor to read and stream out a replication of an on disk saved stream.
+[ ] a js:ReadReplication;
+    js:outgoing <ldes-raw/writer>;
+    js:savePath [
+                    a rdfl:EnvVariable;
+                    rdfl:envDefault <./data/replication-data.txt>;
+                    rdfl:envKey "REPLICATION_DATA"
+                ].
+
+# Processor to bucketize the data
+[ ] a js:Bucketize;
+    js:channels [
+          js:dataInput <ldes-raw/reader>;
+          js:dataOutput <bucketized/writer>;
+          js:metadataInput <metadata/substituted/reader>;
+          js:metadataOutput <metadata/bucketized/writer>;
+      ];
+    js:bucketizeStrategy ( [
+                               a tree:HourFragmentation;
+                               tree:timestampPath dcterms:modified;
+                               tree:unorderedRelations [
+                                                           a rdfl:EnvVariable;
+                                                           rdfl:envDefault false;
+                                                           rdfl:envKey "UNORDERED_RELATIONS"
+                                                       ];
+                           ]);
+    js:outputStreamId ex:BenchmarkStream.
+
+[ ] a js:Log;
+    js:incoming <bucketized/reader>;
+    js:level "debug";
+    js:label "bucketized";
+    js:outgoing <bucketized/logged/writer> .
+
+# Processor to persist the SDS stream into a MongoDB instance
+[ ] a js:Ingest;
+    js:dataInput <bucketized/logged/reader>;
+    js:metadataInput <metadata/bucketized/reader>;
+    js:database [
+          js:url [
+                     a rdfl:EnvVariable;
+                     rdfl:envDefault <mongodb://root:password@mongodb:27017/ldes?authSource=admin>;
+                     rdfl:envKey "DATABASE_URL"
+                 ];
+          js:metadata "METADATA";
+          js:data "DATA";
+          js:index "INDEX";
+      ].

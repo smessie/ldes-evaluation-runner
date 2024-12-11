@@ -26,6 +26,7 @@ const ldesClient = replicateLDES({
         safe: true,
         retry: {
             maxRetries: 100,
+            codes: [404, 408, 410, 425, 429, 500, 502, 503, 504],
         }
     }),
     lastVersionOnly: lastVersionOnly,

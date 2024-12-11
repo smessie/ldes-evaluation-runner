@@ -33,6 +33,7 @@ export type BenchmarkResult = {
     quadsCount?: number;
     quadsThroughput?: number;
     pollInterval?: number;
+    memberArrivalTimes?: number[];
 };
 
 export type BenchmarkStats = { name: string; clientStats: Stats[]; serverStats: StatsExt[]; proxyStats: StatsExt[] };

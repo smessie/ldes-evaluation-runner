@@ -110,7 +110,7 @@ export async function getResultsFromClients(expected: number): Promise<{
     const avgLatency =
         results.reduce((acc, result) => acc + result.avgLatency * result.numClients, 0) / numClients;
     const avgMemberArrivalTimes = [];
-    for (let i = 0; i < results[0].avgMemberArrivalTimes.length; i++) {
+    for (let i = 0; i < results[0].avgMemberArrivalTimes?.length; i++) {
         avgMemberArrivalTimes.push(
             results.reduce((acc, result) => acc + result.avgMemberArrivalTimes[i] * result.numClients, 0) / numClients,
         );
