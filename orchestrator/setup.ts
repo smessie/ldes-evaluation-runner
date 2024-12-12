@@ -36,6 +36,10 @@ export async function awaitMemberCount(expectedCount: number, serverHostname: st
         pollInterval: 200,
         fetch: enhanced_fetch({
             safe: true,
+            retry: {
+                maxRetries: 100,
+                codes: [404, 408, 410, 425, 429, 500, 502, 503, 504],
+            },
         }),
     });
 
