@@ -34,6 +34,7 @@ export async function awaitMemberCount(expectedCount: number, serverHostname: st
         url: `http://${serverHostname}:3000/ldes/default`,
         polling: true,
         pollInterval: 200,
+        noShape: true,
         fetch: enhanced_fetch({
             safe: true,
             retry: {
