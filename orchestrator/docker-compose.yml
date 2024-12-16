@@ -90,6 +90,7 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - UNORDERED_RELATIONS=${UNORDERED_RELATIONS}
       - SERVER_HOSTNAME=${SERVER_HOSTNAME:-localhost}
+      - TIMESTAMP_PATH=${TIMESTAMP_PATH}
     volumes:
       - ${REPLICATION_DATA:-./setup/replication-data.txt}:/opt/pipeline/data/replication-data.txt
       - ${METADATA_FILE:-./ingest-server/metadata.ttl}:/opt/pipeline/metadata.ttl

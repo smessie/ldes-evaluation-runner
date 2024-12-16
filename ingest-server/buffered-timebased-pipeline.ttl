@@ -136,7 +136,11 @@
       ];
     js:bucketizeStrategy ( [
                                a tree:TimebasedFragmentation;
-                               tree:timestampPath prov:generatedAtTime;
+                               tree:timestampPath [
+                                                      a rdfl:EnvVariable;
+                                                      rdfl:envDefault prov:generatedAtTime;
+                                                      rdfl:envKey "TIMESTAMP_PATH"
+                                                  ];
                                tree:maxSize [
                                                 a rdfl:EnvVariable;
                                                 rdfl:envDefault 1000;

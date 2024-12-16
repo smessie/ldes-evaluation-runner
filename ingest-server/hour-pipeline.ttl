@@ -104,7 +104,11 @@
       ];
     js:bucketizeStrategy ( [
                                a tree:HourFragmentation;
-                               tree:timestampPath dcterms:modified;
+                               tree:timestampPath [
+                                                      a rdfl:EnvVariable;
+                                                      rdfl:envDefault dcterms:modified;
+                                                      rdfl:envKey "TIMESTAMP_PATH"
+                                                  ];
                                tree:unorderedRelations [
                                                            a rdfl:EnvVariable;
                                                            rdfl:envDefault false;

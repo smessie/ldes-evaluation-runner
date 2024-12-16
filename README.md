@@ -71,6 +71,7 @@ The following variables can be set:
 - `NUM_CLIENTS`: The number of clients that should simultaneously run during the benchmark.
 - `REPLICATION_DATA`: The path on the host to the replication data file to use. This is the input to ingest the LDES with.
 - `METADATA_FILE`: The path on the container to the metadata file to use. This is the metadata input to ingest the LDES with.
+- `TIMESTAMP_PATH`: The timestamp property in the LDES.
 - `UNORDERED_RELATIONS`: In case of an HourBucketizer LDES, whether default `tree:Relation`s should be used or ordered `tree:GreaterThanOrEqualRelation`s.
 - `CLIENT_ORDER`: the order with which the ldes clients should be started. `ascending`, `descending` or `none`.
 - `LDES_PAGE`: The LDES page to extract the members from in case of the EXTRACT_MEMBERS benchmark type.
