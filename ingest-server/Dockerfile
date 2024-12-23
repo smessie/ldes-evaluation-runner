@@ -9,4 +9,4 @@ COPY . .
 RUN npm install
 
 # Container's entrypoint command
-ENTRYPOINT [ "npx", "js-runner", "pipeline.ttl" ]
+ENTRYPOINT [ "npx", "@rdfc/js-runner", "pipeline.ttl" ]
