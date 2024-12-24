@@ -20,7 +20,7 @@ while (!online) {
 
 const ldesClient = replicateLDES({
     url: `http://${serverHostname}:3000/ldes/default`,
-    polling: true,
+    polling: pollInterval > 0,
     pollInterval: pollInterval,
     fetch: enhanced_fetch({
         safe: true,
