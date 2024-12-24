@@ -19,7 +19,7 @@
   "author": "Ieben Smessaert",
   "license": "MIT",
   "dependencies": {
-    "ldes-client": "^0.0.16",
+    "ldes-client": "^0.0.17",
     "node-ipc": "^12.0.0",
     "pidusage": "^3.0.2"
   },
