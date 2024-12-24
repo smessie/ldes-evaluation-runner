@@ -38,8 +38,8 @@ export async function awaitMemberCount(expectedCount: number, serverHostname: st
         fetch: enhanced_fetch({
             safe: true,
             retry: {
-                maxRetries: 100,
-                codes: [404, 408, 410, 425, 429, 500, 502, 503, 504],
+                maxRetries: 20,
+                codes: [404, 408, 425, 429, 500, 502, 503, 504],
             },
         }),
     });
