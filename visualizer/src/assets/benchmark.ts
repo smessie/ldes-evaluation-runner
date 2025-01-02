@@ -41,7 +41,7 @@ export type BenchmarkStats = { name: string; clientStats: Stats[]; serverStats: 
 export function avgStats<T extends Stats | StatsExt>(stats: T[][]): T[] {
     const maxLen = Math.max(...stats.map((itStats) => itStats.length));
     const result = [] as T[];
-    const isExt = (stats[0][0] as StatsExt).networkInput !== undefined;
+    const isExt = (stats[0][0] as StatsExt)?.networkInput !== undefined;
     for (let i = 0; i < maxLen; i++) {
         const iterationResult = {} as T;
 

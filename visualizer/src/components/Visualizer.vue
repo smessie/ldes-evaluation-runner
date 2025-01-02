@@ -38,7 +38,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(benchmarkResult, index) in benchmarkResults" :key="benchmarkResult[0].name">
-                                    <td>{{ baseName(benchmarkResult[0].name || "") }}</td>
+                                    <td>{{ benchmarkResult[0].name || "" }}</td>
                                     <td>{{ benchmarkResult.length }}</td>
                                     <td>
                                         {{
@@ -82,15 +82,43 @@
                 </MDBCard>
             </MDBCol>
         </MDBRow>
-        <MDBRow v-for="benchmarkResultGroup in benchmarkResults" class="mt-5">
+
+        <MDBRow class="mt-5">
+            <MDBCol md="4">
+                <MDBSwitch v-model="show.coefficientOfVariation" label="Show Coefficient of Variation" />
+            </MDBCol>
+            <MDBCol md="4">
+                <MDBSwitch v-model="show.client" label="Show Client" />
+            </MDBCol>
+            <MDBCol md="4">
+                <MDBSwitch v-model="show.server" label="Show Server" />
+            </MDBCol>
+            <MDBCol md="4">
+                <MDBSwitch v-model="show.proxy" label="Show Proxy" />
+            </MDBCol>
+            <MDBCol md="4">
+                <MDBSwitch v-model="show.boxPlots" label="Show Box Plots" />
+            </MDBCol>
+            <MDBCol md="4">
+                <MDBSwitch v-model="show.logarithmicGroupedExecutionTimes" label="Show Logarithmic Grouped Execution Times" />
+            </MDBCol>
+            <MDBCol md="4">
+                <MDBSwitch v-model="show.arrivalTimes" label="Show Arrival Times" />
+            </MDBCol>
+            <MDBCol md="4">
+                <MDBSwitch v-model="show.executionTimes" label="Show Execution Times" />
+            </MDBCol>
+        </MDBRow>
+
+        <MDBRow v-if="show.coefficientOfVariation" v-for="benchmarkResultGroup in benchmarkResults" class="mt-5">
             <CoefficientOfVariation :benchmark-result-group="benchmarkResultGroup" />
         </MDBRow>
 
-        <MDBRow v-if="benchmarkResults.length > 0">
+        <MDBRow v-if="show.client || show.server || show.proxy">
             <MDBCol md="12" class="mt-5">
                 <MDBSwitch v-model="startNetworkFromZero" label="Start Network from zero" />
             </MDBCol>
-            <MDBCol md="6">
+            <MDBCol md="6" v-if="show.client">
                 <MetricOverTime
                     id="client-cpu-over-time"
                     title="Client CPU Usage Over Time"
@@ -100,7 +128,7 @@
                     :formatter="(value: number) => `${value.toFixed(2)}%`"
                 />
             </MDBCol>
-            <MDBCol md="6">
+            <MDBCol md="6" v-if="show.client">
                 <MetricOverTime
                     id="client-memory-over-time"
                     title="Client Memory Usage Over Time"
@@ -110,7 +138,7 @@
                     :formatter="bytesToReadableXiB"
                 />
             </MDBCol>
-            <MDBCol md="6">
+            <MDBCol md="6" v-if="show.server">
                 <MetricOverTime
                     id="server-cpu-over-time"
                     title="Server CPU Usage Over Time"
@@ -120,7 +148,7 @@
                     :formatter="(value: number) => `${value.toFixed(2)}%`"
                 />
             </MDBCol>
-            <MDBCol md="6">
+            <MDBCol md="6" v-if="show.server">
                 <MetricOverTime
                     id="server-memory-over-time"
                     title="Server Memory Usage Over Time"
@@ -130,7 +158,7 @@
                     :formatter="bytesToReadableXiB"
                 />
             </MDBCol>
-            <MDBCol md="6">
+            <MDBCol md="6" v-if="show.server">
                 <MetricOverTime
                     id="server-network-input-over-time"
                     title="Server Network Input Over Time"
@@ -141,7 +169,7 @@
                     :start-from-zero="startNetworkFromZero"
                 />
             </MDBCol>
-            <MDBCol md="6">
+            <MDBCol md="6" v-if="show.server">
                 <MetricOverTime
                     id="server-network-output-over-time"
                     title="Server Network Output Over Time"
@@ -152,7 +180,7 @@
                     :start-from-zero="startNetworkFromZero"
                 />
             </MDBCol>
-            <MDBCol md="6">
+            <MDBCol md="6" v-if="show.proxy">
                 <MetricOverTime
                     id="proxy-cpu-over-time"
                     title="Proxy CPU Usage Over Time"
@@ -162,7 +190,7 @@
                     :formatter="(value: number) => `${value.toFixed(2)}%`"
                 />
             </MDBCol>
-            <MDBCol md="6">
+            <MDBCol md="6" v-if="show.proxy">
                 <MetricOverTime
                     id="proxy-memory-over-time"
                     title="Proxy Memory Usage Over Time"
@@ -172,7 +200,7 @@
                     :formatter="bytesToReadableXiB"
                 />
             </MDBCol>
-            <MDBCol md="6">
+            <MDBCol md="6" v-if="show.proxy">
                 <MetricOverTime
                     id="proxy-network-input-over-time"
                     title="Proxy Network Input Over Time"
@@ -183,7 +211,7 @@
                     :start-from-zero="startNetworkFromZero"
                 />
             </MDBCol>
-            <MDBCol md="6">
+            <MDBCol md="6" v-if="show.proxy">
                 <MetricOverTime
                     id="proxy-network-output-over-time"
                     title="Proxy Network Output Over Time"
@@ -196,7 +224,7 @@
             </MDBCol>
         </MDBRow>
 
-        <MDBRow v-if="benchmarkResults.length > 1" class="mb-5">
+        <MDBRow v-if="show.boxPlots" class="mb-5">
             <MDBCol md="6">
                 <BoxPlot
                     id="client-cpu-boxplot"
@@ -309,8 +337,32 @@
             </MDBCol>-->
         </MDBRow>
 
-        <MDBRow v-if="benchmarkResults.length >=3" class="mb-5">
-            <GroupedColumnChart :benchmark-results="benchmarkResults.map(bList => { return {name: bList[0].name || '', time: Math.round(bList.map(b => b.time).reduce((a, b) => a + b, 0) / bList.length * 1000) / 1000}})" />
+        <MDBRow v-if="show.logarithmicGroupedExecutionTimes" class="mb-5">
+            <GroupedColumnChart
+                :benchmark-results="
+                    benchmarkResults.map((bList) => {
+                        return {
+                            name: bList[0].name || '',
+                            time:
+                                Math.round(
+                                    (bList.map((b) => b.time).reduce((a, b) => a + b, 0) / bList.length) * 1000,
+                                ) / 1000,
+                        };
+                    })
+                "
+            />
+        </MDBRow>
+
+        <MDBRow v-if="show.arrivalTimes" class="mb-5">
+            <HorizontalBoxPlot
+                id="member-arrival-times"
+                title="Member arrival times"
+                :benchmark-results="benchmarkResults"
+            />
+        </MDBRow>
+
+        <MDBRow v-if="show.executionTimes" class="mb-5">
+            <ColumnChart :benchmark-results="benchmarkResults" />
         </MDBRow>
     </div>
 </template>
@@ -336,10 +388,14 @@ import MetricOverTime from "@/components/MetricOverTime.vue";
 import CoefficientOfVariation from "@/components/CoefficientOfVariation.vue";
 import BoxPlot from "@/components/BoxPlot.vue";
 import GroupedColumnChart from "@/components/GroupedColumnChart.vue";
+import HorizontalBoxPlot from "@/components/HorizontalBoxPlot.vue";
+import ColumnChart from "@/components/ColumnChart.vue";
 
 export default defineComponent({
     name: "Visualizer",
     components: {
+        ColumnChart,
+        HorizontalBoxPlot,
         GroupedColumnChart,
         BoxPlot,
         CoefficientOfVariation,
@@ -363,6 +419,16 @@ export default defineComponent({
             benchmarkResults: [] as BenchmarkResult[][],
             avgStats: [] as BenchmarkStats[],
             startNetworkFromZero: false,
+            show: {
+                coefficientOfVariation: false,
+                client: false,
+                server: false,
+                proxy: false,
+                boxPlots: false,
+                logarithmicGroupedExecutionTimes: false,
+                arrivalTimes: false,
+                executionTimes: false,
+            }
         };
     },
     methods: {
@@ -386,9 +452,9 @@ export default defineComponent({
                     // Remove file extension
                     const name =
                         file.name.lastIndexOf(".") > 0 ? file.name.substring(0, file.name.lastIndexOf(".")) : file.name;
-                    benchmarkResults.forEach((benchmarkResult, index) => {
+                    benchmarkResults.forEach((benchmarkResult) => {
                         if (!benchmarkResult.name) {
-                            benchmarkResult.name = `${name} - it. ${index + 1}`;
+                            benchmarkResult.name = name;
                         }
                     });
                     this.benchmarkResults = [...this.benchmarkResults, benchmarkResults];
@@ -464,10 +530,6 @@ export default defineComponent({
             }
             const i = Math.floor(Math.log(bytes) / Math.log(1000));
             return `${(bytes / Math.pow(1000, i)).toFixed(2)} ${sizes[i]}`;
-        },
-        baseName(name: string): string {
-            // Split of ' - it. x' if it exists
-            return name.split(" - it. ")[0];
         },
     },
 });

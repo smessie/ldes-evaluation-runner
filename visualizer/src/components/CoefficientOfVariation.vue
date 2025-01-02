@@ -1,7 +1,7 @@
 <template>
     <MDBCard>
         <MDBCardHeader>
-            <h4>Coefficient of Variation (CV%) {{ baseName(benchmarkResultGroup[0].name || "") }}</h4>
+            <h4>Coefficient of Variation (CV%) {{ benchmarkResultGroup[0].name || "" }}</h4>
         </MDBCardHeader>
         <MDBCardBody>
             <MDBTable>
@@ -196,10 +196,6 @@ export default defineComponent({
             const squaredDiffs = values.map((v) => Math.pow(v - avg, 2));
             const avgSquaredDiffs = squaredDiffs.reduce((acc, curr) => acc + curr, 0) / (squaredDiffs.length - 1);
             return (Math.sqrt(avgSquaredDiffs) / avg) * 100;
-        },
-        baseName(name: string): string {
-            // Split of ' - it. x' if it exists
-            return name.split(" - it. ")[0];
         },
     },
 });
