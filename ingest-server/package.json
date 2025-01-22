@@ -14,7 +14,7 @@
     "@rdfc/js-runner": "^0.3.0-alpha.1",
     "@rdfc/log-processor-ts": "^1.0.0",
     "@rdfc/replication-processor-ts": "^1.1.1",
-    "@rdfc/sds-processors-ts": "^1.1.2",
+    "@rdfc/sds-processors-ts": "^1.1.4",
     "@rdfc/sds-storage-writer-ts": "^1.0.5"
   }
 }
