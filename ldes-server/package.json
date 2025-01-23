@@ -6,7 +6,7 @@
   "type": "module",
   "main": "index.js",
   "dependencies": {
-    "@solid/community-server": "^7.1.3",
-    "ldes-solid-server": "^0.1.7"
+    "@solid/community-server": "^7.1.5",
+    "ldes-solid-server": "^0.1.8"
   }
 }
