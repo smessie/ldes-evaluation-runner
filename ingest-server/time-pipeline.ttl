@@ -116,7 +116,10 @@
                                                       rdfl:datatype xsd:iri
                                                   ];
                                tree:level ( [      # Create 3 levels, resulting uri's <year>/<month>/<day>
-                                                   tree:range "year", "month";
+                                                   tree:range "year";
+                                                   tree:maxSize 0;
+                                            ] [
+                                                   tree:range "month";
                                                    tree:maxSize 0;
                                             ] [
                                                    tree:range "day-of-month";
