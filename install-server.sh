@@ -15,7 +15,7 @@ npm install
 npm run build
 cd ..
 
-cd runner
+cd orchestrator
 npm install
 npm run build
 cd ..
