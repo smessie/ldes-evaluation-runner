@@ -26,6 +26,8 @@ async function main() {
         }
     }
 
+    console.log(`[${new Date().toISOString()}] Starting benchmark with env file: ${envFile}`);
+
     // Get the parameters from the environment
     checkEnvVars(["EXEC_FILE", "ITERATIONS", "TYPE", "COLLECT_METRICS_INTERVAL"]);
     const execFile = process.env.EXEC_FILE || "";
@@ -51,7 +53,7 @@ async function main() {
     await initiateDistribution();
 
     if (benchmarkType === "STATIC_LDES" || benchmarkType === "EXTRACT_MEMBERS") {
-        console.log("Starting static LDES benchmark");
+        console.log(`[${new Date().toISOString()}] Starting static LDES benchmark`);
 
         // Start the required services
         await setup(envFile, serverHostname);
@@ -60,7 +62,7 @@ async function main() {
         await awaitOnline(serverHostname);
 
         // Wait for the LDES to contain the expected number of members
-        console.log(`Waiting for the LDES to contain ${config.expectedCount} members`);
+        console.log(`[${new Date().toISOString()}] Waiting for the LDES to contain ${config.expectedCount} members`);
         await awaitMemberCount(config.expectedCount, serverHostname);
 
         // Warmup rounds
@@ -68,7 +70,7 @@ async function main() {
         const warmupFile = process.env.WARMUP_FILE || "";
         if (warmupRounds > 0) {
             for (let i = 0; i < warmupRounds; i++) {
-                console.log(`Running warmup round ${i + 1}/${warmupRounds}`);
+                console.log(`[${new Date().toISOString()}] Running warmup round ${i + 1}/${warmupRounds}`);
                 await runBenchmarkIteration(warmupFile, config);
             }
         }
@@ -78,7 +80,7 @@ async function main() {
 
     const results = [];
     for (let i = 0; i < iterations; i++) {
-        console.log(`Starting iteration ${i + 1}/${iterations}`);
+        console.log(`[${new Date().toISOString()}] Starting iteration ${i + 1}/${iterations}`);
 
         let instancesInitialized;
         if (benchmarkType === "UPDATING_LDES") {
@@ -93,7 +95,7 @@ async function main() {
         }
 
         // Run the benchmark
-        console.log(`Running benchmark iteration ${i + 1}/${iterations}`);
+        console.log(`[${new Date().toISOString()}] Running benchmark iteration ${i + 1}/${iterations}`);
         const result = await runBenchmarkIteration(execFile, config, instancesInitialized ?? numClients);
         results.push(result);
 
@@ -141,17 +143,17 @@ async function main() {
     }
 
     // Write the results to the output file
-    console.log(`\nWriting results to '${outputFile}'...`);
+    console.log(`\n[${new Date().toISOString()}] Writing results to '${outputFile}'...`);
 
     await jsonfile
         .writeFile(outputFile, results)
-        .catch(() => console.error(`Could not write results to file '${outputFile}'.`));
+        .catch(() => console.error(`[${new Date().toISOString()}] Could not write results to file '${outputFile}'.`));
 }
 
 function checkEnvVars(names: string[]) {
     for (const name of names) {
         if (!process.env[name]) {
-            console.error(`Environment variable '${name}' is not set.`);
+            console.error(`[${new Date().toISOString()}] Environment variable '${name}' is not set.`);
             process.exit(1);
         }
     }

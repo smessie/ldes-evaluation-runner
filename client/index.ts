@@ -27,20 +27,20 @@ async function main() {
     ipc.connectToNet("server", serverHostname, () => {
         ipc.of.server.on("connect", () => {
             // Called when the client connected to the server.
-            console.log("Connected to server");
+            console.log(`[${new Date().toISOString()}] Connected to server`);
             connected = true;
         });
 
         ipc.of.server.on("disconnect", () => {
             // Called when the server disconnects from the client or the client fails to connect to the server.
             if (connected) {
-                console.log("Disconnected from server");
+                console.log(`[${new Date().toISOString()}] Disconnected from server`);
                 connected = false;
             }
         });
 
         ipc.of.server.on("start", async (data) => {
-            console.log(`Starting ${data.clients} clients with file ${data.file} and args ${data.args}`);
+            console.log(`[${new Date().toISOString()}] Starting ${data.clients} clients with file ${data.file} and args ${data.args}`);
             await startClients(data.clients, data.file, data.intervalMs, data.args);
         });
     });
@@ -145,7 +145,7 @@ function stopChildProcessOnExit(child: ChildProcess): void {
     const callOnExit = (code: any) => {
         if (!child.killed && !terminated) {
             child.kill();
-            console.log(`Exiting because of ${code}. Cleaning up...`);
+            console.log(`[${new Date().toISOString()}] Exiting because of ${code}. Cleaning up...`);
         }
     };
     process.once("exit", callOnExit);

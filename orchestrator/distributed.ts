@@ -19,25 +19,25 @@ export async function initiateDistribution() {
     ipc.serveNet("0.0.0.0", 8000, () => {
         ipc.server.on("connect", (socket) => {
             // Called when a client connects to the server.
-            console.log("new client connected", socket.remoteAddress, socket.remotePort);
+            console.log(`[${new Date().toISOString()}] new client connected`, socket.remoteAddress, socket.remotePort);
             connectedClients.push({ socket: socket, address: socket.remoteAddress, port: socket.remotePort });
         });
 
         ipc.server.on("socket.disconnected", (socket) => {
             // Called when a client disconnects from the server.
-            console.error(`Client disconnected`, socket.remoteAddress, socket.remotePort);
+            console.error(`[${new Date().toISOString()}] Client disconnected`, socket.remoteAddress, socket.remotePort);
             const client = connectedClients.find(
                 (c) => c.address === socket.remoteAddress && c.port === socket.remotePort,
             );
             if (client) {
-                console.log("Found client, removing from list");
+                console.log(`[${new Date().toISOString()}] Found client, removing from list`);
                 connectedClients.splice(connectedClients.indexOf(client), 1);
             }
         });
 
         ipc.server.on("results", (data, socket) => {
             // Called when a client sends results to the server.
-            console.log("Got results from client", socket.remoteAddress, socket.remotePort);
+            console.log(`[${new Date().toISOString()}] Got results from client`, socket.remoteAddress, socket.remotePort);
             results.push(data);
         });
     });
