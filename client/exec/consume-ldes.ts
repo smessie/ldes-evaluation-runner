@@ -1,8 +1,8 @@
 import { enhanced_fetch, Ordered, replicateLDES } from "ldes-client";
 
 const serverHostname = process.argv[2] || "localhost";
-const expectedCount = parseInt(process.argv[3]) || 1000;
-const pollInterval = parseInt(process.argv[4]) || 200;
+const expectedCount = parseInt(process.argv[3]) ?? 1000;
+const pollInterval = parseInt(process.argv[4]) ?? 200;
 let order: Ordered | undefined;
 if (process.argv[5] === "ascending" || process.argv[5] === "descending" || process.argv[5] === "none") {
     order = process.argv[5] as Ordered;
