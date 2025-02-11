@@ -1,5 +1,10 @@
 import * as compose from "docker-compose";
 import { getResultsFromClients, startClients } from "./distributed";
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
+const __dirname = path.dirname(__filename); // get the name of the directory
 
 export async function runBenchmarkIteration(
     file: string,
@@ -85,7 +90,7 @@ function collectMetrics(intervalMs: number = 100): () => Metrics {
     const proxyStats: { cpu: number; memory: number; networkInput: number; networkOutput: number }[] = [];
     const interval = setInterval(async () => {
         try {
-            const serverStat: compose.DockerComposeStatsResult = await compose.stats("ldes-server");
+            const serverStat: compose.DockerComposeStatsResult = await compose.stats("ldes-server", { cwd: path.join(__dirname)});
             serverStats.push({
                 cpu: parseFloat(serverStat.CPUPerc.replace("%", "")),
                 memory: readableFormatToBytes(serverStat.MemUsage.split("/")[0].trim()),
@@ -95,7 +100,7 @@ function collectMetrics(intervalMs: number = 100): () => Metrics {
         } catch (_) {}
 
         try {
-            const proxyStat: compose.DockerComposeStatsResult = await compose.stats("nginx");
+            const proxyStat: compose.DockerComposeStatsResult = await compose.stats("nginx", { cwd: path.join(__dirname)});
             proxyStats.push({
                 cpu: parseFloat(proxyStat.CPUPerc.replace("%", "")),
                 memory: readableFormatToBytes(proxyStat.MemUsage.split("/")[0].trim()),

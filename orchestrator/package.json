@@ -23,7 +23,7 @@
   "author": "Ieben Smessaert",
   "license": "MIT",
   "dependencies": {
-    "docker-compose": "^1.1.0",
+    "docker-compose": "^1.1.1",
     "dotenv": "^16.4.5",
     "jsonfile": "^6.1.0",
     "ldes-client": "^0.0.20",
