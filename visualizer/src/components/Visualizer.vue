@@ -30,9 +30,9 @@
                                 <tr>
                                     <th>Benchmark</th>
                                     <th>Runs</th>
-                                    <th>Avg time</th>
-                                    <th>Avg members throughput</th>
-                                    <th>Avg quads throughput</th>
+                                    <th>Median time</th>
+                                    <th>Median members throughput</th>
+                                    <th>Median quads throughput</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -42,31 +42,19 @@
                                     <td>{{ benchmarkResult.length }}</td>
                                     <td>
                                         {{
-                                            (
-                                                benchmarkResult
-                                                    .map((b) => b.time)
-                                                    .reduce((acc, curr) => acc + curr, 0) / benchmarkResult.length
-                                            ).toLocaleString("en-US", { maximumFractionDigits: 3 })
+                                            median(benchmarkResult.map((b) => b.time)).toLocaleString("en-US", { maximumFractionDigits: 3 })
                                         }}
                                         s
                                     </td>
                                     <td>
                                         {{
-                                            (
-                                                benchmarkResult
-                                                    .map((b) => b.membersThroughput || 0)
-                                                    .reduce((acc, curr) => acc + curr, 0) / benchmarkResult.length
-                                            ).toLocaleString("en-US", { maximumFractionDigits: 3 })
+                                            median(benchmarkResult.map((b) => b.membersThroughput || 0)).toLocaleString("en-US", { maximumFractionDigits: 3 })
                                         }}
                                         members/s
                                     </td>
                                     <td>
                                         {{
-                                            (
-                                                benchmarkResult
-                                                    .map((b) => b.quadsThroughput || 0)
-                                                    .reduce((acc, curr) => acc + curr, 0) / benchmarkResult.length
-                                            ).toLocaleString("en-US", { maximumFractionDigits: 3 })
+                                            median(benchmarkResult.map((b) => b.quadsThroughput || 0)).toLocaleString("en-US", { maximumFractionDigits: 3 })
                                         }}
                                         quads/s
                                     </td>
@@ -124,7 +112,7 @@
                     title="Client CPU Usage Over Time"
                     metric="cpu"
                     stats="clientStats"
-                    :benchmark-results="avgStats"
+                    :benchmark-results="medianStats"
                     :formatter="(value: number) => `${value.toFixed(2)}%`"
                 />
             </MDBCol>
@@ -134,7 +122,7 @@
                     title="Client Memory Usage Over Time"
                     metric="memory"
                     stats="clientStats"
-                    :benchmark-results="avgStats"
+                    :benchmark-results="medianStats"
                     :formatter="bytesToReadableXiB"
                 />
             </MDBCol>
@@ -144,7 +132,7 @@
                     title="Server CPU Usage Over Time"
                     metric="cpu"
                     stats="serverStats"
-                    :benchmark-results="avgStats"
+                    :benchmark-results="medianStats"
                     :formatter="(value: number) => `${value.toFixed(2)}%`"
                 />
             </MDBCol>
@@ -154,7 +142,7 @@
                     title="Server Memory Usage Over Time"
                     metric="memory"
                     stats="serverStats"
-                    :benchmark-results="avgStats"
+                    :benchmark-results="medianStats"
                     :formatter="bytesToReadableXiB"
                 />
             </MDBCol>
@@ -164,7 +152,7 @@
                     title="Server Network Input Over Time"
                     metric="networkInput"
                     stats="serverStats"
-                    :benchmark-results="avgStats"
+                    :benchmark-results="medianStats"
                     :formatter="bytesToReadableXB"
                     :start-from-zero="startNetworkFromZero"
                 />
@@ -175,7 +163,7 @@
                     title="Server Network Output Over Time"
                     metric="networkOutput"
                     stats="serverStats"
-                    :benchmark-results="avgStats"
+                    :benchmark-results="medianStats"
                     :formatter="bytesToReadableXB"
                     :start-from-zero="startNetworkFromZero"
                 />
@@ -186,7 +174,7 @@
                     title="Proxy CPU Usage Over Time"
                     metric="cpu"
                     stats="proxyStats"
-                    :benchmark-results="avgStats"
+                    :benchmark-results="medianStats"
                     :formatter="(value: number) => `${value.toFixed(2)}%`"
                 />
             </MDBCol>
@@ -196,7 +184,7 @@
                     title="Proxy Memory Usage Over Time"
                     metric="memory"
                     stats="proxyStats"
-                    :benchmark-results="avgStats"
+                    :benchmark-results="medianStats"
                     :formatter="bytesToReadableXiB"
                 />
             </MDBCol>
@@ -206,7 +194,7 @@
                     title="Proxy Network Input Over Time"
                     metric="networkInput"
                     stats="proxyStats"
-                    :benchmark-results="avgStats"
+                    :benchmark-results="medianStats"
                     :formatter="bytesToReadableXB"
                     :start-from-zero="startNetworkFromZero"
                 />
@@ -217,7 +205,7 @@
                     title="Proxy Network Output Over Time"
                     metric="networkOutput"
                     stats="proxyStats"
-                    :benchmark-results="avgStats"
+                    :benchmark-results="medianStats"
                     :formatter="bytesToReadableXB"
                     :start-from-zero="startNetworkFromZero"
                 />
@@ -382,7 +370,7 @@ import {
     MDBSwitch,
     MDBTable,
 } from "mdb-vue-ui-kit";
-import { avgStats, type BenchmarkResult, type BenchmarkStats } from "@/assets/benchmark";
+import { medianStats, type BenchmarkResult, type BenchmarkStats, median } from "@/assets/benchmark";
 import VueApexCharts from "vue3-apexcharts";
 import MetricOverTime from "@/components/MetricOverTime.vue";
 import CoefficientOfVariation from "@/components/CoefficientOfVariation.vue";
@@ -417,7 +405,7 @@ export default defineComponent({
         return {
             files: [] as File[],
             benchmarkResults: [] as BenchmarkResult[][],
-            avgStats: [] as BenchmarkStats[],
+            medianStats: [] as BenchmarkStats[],
             startNetworkFromZero: false,
             show: {
                 coefficientOfVariation: false,
@@ -432,6 +420,7 @@ export default defineComponent({
         };
     },
     methods: {
+        median,
         handleFileUpload(event: Event) {
             event.preventDefault();
             if (!this.files) {
@@ -460,17 +449,17 @@ export default defineComponent({
                     this.benchmarkResults = [...this.benchmarkResults, benchmarkResults];
 
                     // Calculate average stats
-                    this.avgStats = [
-                        ...this.avgStats,
+                    this.medianStats = [
+                        ...this.medianStats,
                         {
                             name: name,
-                            clientStats: avgStats(
+                            clientStats: medianStats(
                                 benchmarkResults.map((b) => b.clientStats).filter((b) => b !== undefined),
                             ),
-                            serverStats: avgStats(
+                            serverStats: medianStats(
                                 benchmarkResults.map((b) => b.serverStats).filter((b) => b !== undefined),
                             ),
-                            proxyStats: avgStats(
+                            proxyStats: medianStats(
                                 benchmarkResults.map((b) => b.proxyStats).filter((b) => b !== undefined),
                             ),
                         },
@@ -486,22 +475,6 @@ export default defineComponent({
         },
         removeResult(index: number) {
             this.benchmarkResults = this.benchmarkResults.filter((_, i) => i !== index);
-        },
-        avgCpuOverTime(
-            benchmarkResults: BenchmarkResult[],
-            stats: "clientStats" | "serverStats" | "proxyStats" = "clientStats",
-        ) {
-            // Average the different iterations of the same benchmark to one list of values with the average cpu usage at each time point
-            const maxTimePoints = Math.max(...benchmarkResults.map((b) => b[stats]?.length || 0));
-            const avgCpuUsage = Array(maxTimePoints).fill(0);
-            for (let i = 0; i < avgCpuUsage.length; i++) {
-                const cpuUsagePerIteration = benchmarkResults
-                    .map((b) => b[stats]?.[i]?.cpu)
-                    .filter((c) => c !== undefined) as number[];
-                avgCpuUsage[i] =
-                    cpuUsagePerIteration.reduce((acc, curr) => acc + curr, 0) / cpuUsagePerIteration.length;
-            }
-            return avgCpuUsage;
         },
         xAxisCategories(
             benchmarkResults: BenchmarkResult[],

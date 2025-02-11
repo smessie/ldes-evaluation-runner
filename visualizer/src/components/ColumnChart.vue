@@ -5,7 +5,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import VueApexCharts from "vue3-apexcharts";
-import type { BenchmarkResult } from "@/assets/benchmark";
+import { type BenchmarkResult, median } from "@/assets/benchmark";
 
 export default defineComponent({
     name: "ColumnChart",
@@ -43,7 +43,7 @@ export default defineComponent({
                     },
                     offsetY: -60,
                     style: {
-                        fontSize: '13px',
+                        fontSize: '12px',
                         colors: ["#304758"],
                     }
                 },
@@ -116,13 +116,11 @@ export default defineComponent({
             this.enableChart = false;
 
             const categories = this.benchmarkResults.map((b) => {
-                return b[0].name || "";
+                return b[0].name?.replace('-full-1c', '') || "";
             });
 
-            const data = this.benchmarkResults.map((b) => b.reduce((acc, curr) => acc + curr.time, 0) / b.length);
-            const quadsPerSecond = this.benchmarkResults.map(
-                (b) => b.reduce((acc, curr) => acc + (curr.quadsThroughput || 0), 0) / b.length,
-            );
+            const data = this.benchmarkResults.map((b) => median(b.map((b) => b.time)));
+            const quadsPerSecond = this.benchmarkResults.map((b) => median(b.map((b) => b.quadsThroughput ?? 0)));
 
             this.chartOptions = {
                 ...this.chartOptions,

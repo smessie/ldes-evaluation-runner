@@ -38,7 +38,7 @@ export type BenchmarkResult = {
 
 export type BenchmarkStats = { name: string; clientStats: Stats[]; serverStats: StatsExt[]; proxyStats: StatsExt[] };
 
-export function avgStats<T extends Stats | StatsExt>(stats: T[][]): T[] {
+export function medianStats<T extends Stats | StatsExt>(stats: T[][]): T[] {
     const maxLen = Math.max(...stats.map((itStats) => itStats.length));
     const result = [] as T[];
     const isExt = (stats[0][0] as StatsExt)?.networkInput !== undefined;
@@ -46,22 +46,20 @@ export function avgStats<T extends Stats | StatsExt>(stats: T[][]): T[] {
         const iterationResult = {} as T;
 
         const statsAtIntervalPerIteration = stats.map((itStats) => itStats[i]).filter((s) => s);
-        iterationResult.cpu =
-            statsAtIntervalPerIteration.reduce((acc, s) => acc + s.cpu, 0) / statsAtIntervalPerIteration.length;
-        iterationResult.memory =
-            statsAtIntervalPerIteration.reduce((acc, s) => acc + s.memory, 0) / statsAtIntervalPerIteration.length;
+        iterationResult.cpu = median(statsAtIntervalPerIteration.map((s) => s.cpu));
+        iterationResult.memory = median(statsAtIntervalPerIteration.map((s) => s.memory));
 
         if (isExt) {
-            (iterationResult as StatsExt).networkInput =
-                statsAtIntervalPerIteration.reduce((acc, s) => acc + (s as StatsExt).networkInput, 0) /
-                statsAtIntervalPerIteration.length;
-        }
-        if (isExt) {
-            (iterationResult as StatsExt).networkOutput =
-                statsAtIntervalPerIteration.reduce((acc, s) => acc + (s as StatsExt).networkOutput, 0) /
-                statsAtIntervalPerIteration.length;
+            (iterationResult as StatsExt).networkInput = median(statsAtIntervalPerIteration.map((s) => (s as StatsExt).networkInput));
+            (iterationResult as StatsExt).networkOutput = median(statsAtIntervalPerIteration.map((s) => (s as StatsExt).networkOutput));
         }
         result.push(iterationResult);
     }
     return result;
+}
+
+export function median(arr: number[]): number {
+    const mid = Math.floor(arr.length / 2);
+    const nums = [...arr].sort((a, b) => a - b);
+    return arr.length % 2 !== 0 ? nums[mid] : (((nums[mid - 1] as any) + nums[mid]) as any) / 2;
 }
