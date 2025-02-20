@@ -18,6 +18,8 @@ while (!online) {
     } catch (_) {}
 }
 
+const hrStart = process.hrtime();
+
 const ldesClient = replicateLDES({
     url: `http://${serverHostname}:3000/ldes/default`,
     polling: pollInterval > 0,
@@ -38,9 +40,13 @@ console.log(`Expecting ${expectedCount} elements`);
 let count = 0;
 let countQuads = 0;
 let totalLatency = 0;
+let memberArrivalTimes: number[] = [];  // Milliseconds since start
 
 for await (const element of ldesClient.stream()) {
     if (element) {
+        const hrMember = process.hrtime(hrStart);
+        memberArrivalTimes.push(Math.round(hrMember[0] * 1000 + hrMember[1] / 1000000));
+
         const latency = Date.now() - element.created!.getTime();
         totalLatency += latency;
 
@@ -61,6 +67,7 @@ if (process.send) {
         resultMembers: count,
         resultQuads: countQuads,
         latency: totalLatency / count,
+        memberArrivalTimes: memberArrivalTimes,
     });
 } else {
     console.log(`No process.send found. Result: ${count} elements with ${countQuads} quads`);
