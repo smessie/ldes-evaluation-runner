@@ -12,7 +12,7 @@
 <> owl:imports <./node_modules/@rdfc/js-runner/channels/file.ttl>.
 <> owl:imports <./node_modules/@rdfc/replication-processor-ts/processor.ttl>.
 <> owl:imports <./node_modules/@rdfc/sds-processors-ts/configs/sdsify.ttl>.
-<> owl:imports <./custom-ldes-harvester-processor/processor.ttl>.
+<> owl:imports <./node_modules/ldes-harvester-processor-ts/processor.ttl>.
 
 #########################################
 # Channel definitions
@@ -41,9 +41,10 @@
     js:outgoing <ldes/writer>;
     js:url "https://telraam-api.net/ldes/observations/by-time";
     js:start "2024-03-01T00:00:00Z"^^xsd:dateTime;
-    js:end "2024-03-02T00:00:00Z"^^xsd:dateTime;
+    js:end "2024-03-08T00:00:00Z"^^xsd:dateTime;
     js:interval 3600000;
-    js:amountPerInterval 100.
+    js:amountPerInterval 100;
+    js:urlIsView true.
 
 
 # Processor to describe every entity as part of a SDS stream for further processing
@@ -58,4 +59,4 @@
 [ ] a js:WriteReplication;
     js:incoming <sds/reader>;
     js:append false;
-    js:savePath <./replication-data-telraam-day.txt>.
+    js:savePath <../replication-data-example.txt>.
