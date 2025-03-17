@@ -8,24 +8,18 @@ const __dirname = path.dirname(__filename); // get the name of the directory
 
 export async function runBenchmarkIteration(
     file: string,
-    config: any,
+    type: string,
+    intervalMs: number,
+    args: string[],
     numClients: number = 1,
 ): Promise<BenchmarkResult> {
-    // Start the child process executing the code we want to benchmark
-    let args: string[] = [];
-    if (config.type === "UPDATING_LDES" || config.type === "STATIC_LDES") {
-        args = [config.serverHostname, config.expectedCount.toString(), config.pollInterval.toString(), config.clientOrder, config.clientLastVersionOnly.toString()];
-    } else if (config.type === "EXTRACT_MEMBERS") {
-        args = [config.ldesPage, config.cbdSpecifyShape.toString(), config.cbdDefaultGraph.toString()];
-    }
-
     // Start collecting server and proxy metrics
-    const metrics = collectMetrics(config.intervalMs);
+    const metrics = collectMetrics(intervalMs);
 
     // Start the clients if not UPDATING_LDES (then the clients are already started)
     let instancesInitialized;
-    if (config.type !== "UPDATING_LDES") {
-        instancesInitialized = startClients(numClients, file, config.intervalMs, args);
+    if (type !== "UPDATING_LDES") {
+        instancesInitialized = startClients(numClients, file, intervalMs, args);
     } else {
         instancesInitialized = numClients;
     }
@@ -47,7 +41,7 @@ export async function runBenchmarkIteration(
     const serverLoad: Load = statsToLoad(metricsResult.serverStats);
     const proxyLoad: Load = statsToLoad(metricsResult.proxyStats);
 
-    if (config.type === "UPDATING_LDES" || config.type === "STATIC_LDES" || config.type === "EXTRACT_MEMBERS") {
+    if (type === "UPDATING_LDES" || type === "STATIC_LDES" || type === "EXTRACT_MEMBERS") {
         return new BenchmarkResult(
             time,
             clientLoad,
@@ -61,7 +55,7 @@ export async function runBenchmarkIteration(
             avgQuadsCount,
             avgQuadsCount / time,
             avgLatency,
-            config.pollInterval,
+            args,
             avgMemberArrivalTimes
         );
     } else {
@@ -78,7 +72,7 @@ export async function runBenchmarkIteration(
             undefined,
             undefined,
             undefined,
-            undefined,
+            args,
             undefined,
         );
     }
@@ -212,7 +206,7 @@ export class BenchmarkResult {
     public readonly quadsCount?: number;
     public readonly quadsThroughput?: number;
     public readonly latency?: number;
-    public readonly pollInterval?: number;
+    public readonly clientArguments?: string[];
     public readonly memberArrivalTimes?: number[];
 
     constructor(
@@ -241,7 +235,7 @@ export class BenchmarkResult {
         quadsCount?: number,
         quadsThroughput?: number,
         latency?: number,
-        pollInterval?: number,
+        clientArguments?: string[],
         memberArrivalTimes?: number[],
     ) {
         this.time = time;
@@ -256,7 +250,7 @@ export class BenchmarkResult {
         this.quadsCount = quadsCount;
         this.quadsThroughput = quadsThroughput;
         this.latency = latency;
-        this.pollInterval = pollInterval;
+        this.clientArguments = clientArguments;
         this.memberArrivalTimes = memberArrivalTimes;
     }
 }

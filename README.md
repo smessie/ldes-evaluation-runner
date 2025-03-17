@@ -32,6 +32,7 @@ The following variables can be set:
 - `TYPE`: The benchmark type. Currently supported: `UPDATING_LDES`.
 - `EXEC_FILE`: The file to execute. This is the file that will be benchmarked.
 - `WARMUP_FILE`: The file to execute during the warmup phase.
+- `CLIENT_ARGUMENTS`: The arguments to pass to the client. Listed as a comma-separated list of environment variable keys that will be loaded. They can then be initialized in this .env file. Use `SERVER_HOSTNAME` to use the server hostname specified when starting the orchestrator. 
 - `WARMUP_ROUNDS`: The amount of warmup iterations to run.
 - `ITERATIONS`: The amount of iterations to run the benchmark.
 - `INGEST_PIPELINE`: The pipeline to use for ingesting the LDES.

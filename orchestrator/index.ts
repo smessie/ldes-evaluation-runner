@@ -15,6 +15,7 @@ async function main() {
     const envFile = process.argv[2];
     const outputFile = process.argv[3];
     const serverHostname = process.argv[4] || "127.0.0.1";
+    process.env.SERVER_HOSTNAME = serverHostname;
 
     // Read the env file
     dotenv.config({ path: envFile });
@@ -29,26 +30,16 @@ async function main() {
     console.log(`[${new Date().toISOString()}] Starting benchmark with env file: ${envFile}`);
 
     // Get the parameters from the environment
-    checkEnvVars(["EXEC_FILE", "ITERATIONS", "TYPE", "COLLECT_METRICS_INTERVAL"]);
+    checkEnvVars(["EXEC_FILE", "ITERATIONS", "TYPE", "COLLECT_METRICS_INTERVAL", "EXPECTED_COUNT", "CLIENT_ARGUMENTS"]);
     const execFile = process.env.EXEC_FILE || "";
     const iterations = parseInt(process.env.ITERATIONS || "");
     const numClients = parseInt(process.env.NUM_CLIENTS || "1");
     const intervalMs = parseInt(process.env.COLLECT_METRICS_INTERVAL || "");
+    const expectedCount = parseInt(process.env.EXPECTED_COUNT || "");
     const benchmarkType = process.env.TYPE || "";
-    const config: any = { type: benchmarkType, serverHostname: serverHostname, intervalMs: intervalMs };
-    if (benchmarkType === "UPDATING_LDES" || benchmarkType === "STATIC_LDES") {
-        checkEnvVars(["EXPECTED_COUNT", "POLL_INTERVAL", "CLIENT_ORDER", "CLIENT_LAST_VERSION_ONLY"]);
-        config.expectedCount = parseInt(process.env.EXPECTED_COUNT || "");
-        config.pollInterval = parseInt(process.env.POLL_INTERVAL || "");
-        config.clientOrder = process.env.CLIENT_ORDER;
-        config.clientLastVersionOnly = process.env.CLIENT_LAST_VERSION_ONLY === "true";
-    } else if (benchmarkType === "EXTRACT_MEMBERS") {
-        checkEnvVars(["EXPECTED_COUNT", "LDES_PAGE", "CBD_SPECIFY_SHAPE", "CBD_DEFAULT_GRAPH"]);
-        config.expectedCount = parseInt(process.env.EXPECTED_COUNT || "");
-        config.ldesPage = (process.env.LDES_PAGE || '').replace("{SERVER_HOSTNAME}", serverHostname);
-        config.cbdSpecifyShape = process.env.CBD_SPECIFY_SHAPE === "true";
-        config.cbdDefaultGraph = process.env.CBD_DEFAULT_GRAPH === "true";
-    }
+    const clientArguments = (process.env.CLIENT_ARGUMENTS || "").split(/\s*,\s*/);
+    checkEnvVars(clientArguments);
+    const args = clientArguments.map((arg) => process.env[arg] || "");
 
     await initiateDistribution();
 
@@ -62,8 +53,8 @@ async function main() {
         await awaitOnline(serverHostname);
 
         // Wait for the LDES to contain the expected number of members
-        console.log(`[${new Date().toISOString()}] Waiting for the LDES to contain ${config.expectedCount} members`);
-        await awaitMemberCount(config.expectedCount, serverHostname);
+        console.log(`[${new Date().toISOString()}] Waiting for the LDES to contain ${expectedCount} members`);
+        await awaitMemberCount(expectedCount, serverHostname);
 
         // Warmup rounds
         const warmupRounds = parseInt(process.env.WARMUP_ROUNDS || "");
@@ -71,7 +62,7 @@ async function main() {
         if (warmupRounds > 0) {
             for (let i = 0; i < warmupRounds; i++) {
                 console.log(`[${new Date().toISOString()}] Running warmup round ${i + 1}/${warmupRounds}`);
-                await runBenchmarkIteration(warmupFile, config);
+                await runBenchmarkIteration(warmupFile, benchmarkType, intervalMs, args);
             }
         }
     }
@@ -85,7 +76,7 @@ async function main() {
         let instancesInitialized;
         if (benchmarkType === "UPDATING_LDES") {
             // Start the clients before the ingestion starts
-            instancesInitialized = startClients(numClients, execFile, intervalMs, [serverHostname, config.expectedCount.toString(), config.pollInterval.toString(), config.clientOrder, config.clientLastVersionOnly.toString()]);
+            instancesInitialized = startClients(numClients, execFile, intervalMs, args);
 
             // Start the required services
             await setup(envFile, serverHostname);
@@ -96,7 +87,7 @@ async function main() {
 
         // Run the benchmark
         console.log(`[${new Date().toISOString()}] Running benchmark iteration ${i + 1}/${iterations}`);
-        const result = await runBenchmarkIteration(execFile, config, instancesInitialized ?? numClients);
+        const result = await runBenchmarkIteration(execFile, benchmarkType, intervalMs, args, instancesInitialized ?? numClients);
         results.push(result);
 
         console.log(
