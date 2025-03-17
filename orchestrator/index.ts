@@ -5,6 +5,7 @@ import { runBenchmarkIteration } from "./benchmark";
 import dotenv from "dotenv";
 import jsonfile from "jsonfile";
 import { initiateDistribution, startClients, stopDistribution } from "./distributed";
+import { accessSync } from "node:fs";
 
 async function main() {
     // Get env file from first argument
@@ -32,6 +33,7 @@ async function main() {
     // Get the parameters from the environment
     checkEnvVars(["EXEC_FILE", "ITERATIONS", "TYPE", "COLLECT_METRICS_INTERVAL", "EXPECTED_COUNT", "CLIENT_ARGUMENTS"]);
     const execFile = process.env.EXEC_FILE || "";
+    checkFilePath(execFile, "exec file");
     const iterations = parseInt(process.env.ITERATIONS || "");
     const numClients = parseInt(process.env.NUM_CLIENTS || "1");
     const intervalMs = parseInt(process.env.COLLECT_METRICS_INTERVAL || "");
@@ -40,6 +42,10 @@ async function main() {
     const clientArguments = (process.env.CLIENT_ARGUMENTS || "").split(/\s*,\s*/);
     checkEnvVars(clientArguments);
     const args = clientArguments.map((arg) => process.env[arg] || "");
+
+    checkFilePath(process.env.REPLICATION_DATA, "replication data");
+    checkFilePath(process.env.METADATA_FILE, "metadata");
+    checkFilePath(process.env.INGEST_PIPELINE, "ingest pipeline");
 
     await initiateDistribution();
 
@@ -124,12 +130,12 @@ async function main() {
     for (const [i, result] of results.entries()) {
         console.log(
             `${i + 1}, ${result.time}s, ${result.membersCount}, ${result.membersThroughput} members/s, ${result.quadsCount}, ${result.quadsThroughput} members/s, ${result.latency}ms, ${result.clientLoad.avgCpu}%, ${result.clientLoad.avgMemory / 1024 / 1024}MiB, ${result.clientLoad.maxCpu}%, ${result.clientLoad.maxMemory / 1024 / 1024}MiB` +
-                (result.serverLoad
-                    ? `, ${result.serverLoad.avgCpu}%, ${result.serverLoad.avgMemory / 1024 / 1024}MiB, ${result.serverLoad.maxCpu}%, ${result.serverLoad.maxMemory / 1024 / 1024}MiB, ${result.serverLoad.networkInput}MB, ${result.serverLoad.networkOutput}MB`
-                    : "") +
-                (result.proxyLoad
-                    ? `, ${result.proxyLoad.avgCpu}%, ${result.proxyLoad.avgMemory / 1024 / 1024}MiB, ${result.proxyLoad.maxCpu}%, ${result.proxyLoad.maxMemory / 1024 / 1024}MiB, ${result.proxyLoad.networkInput}MB, ${result.proxyLoad.networkOutput}MB`
-                    : ""),
+            (result.serverLoad
+                ? `, ${result.serverLoad.avgCpu}%, ${result.serverLoad.avgMemory / 1024 / 1024}MiB, ${result.serverLoad.maxCpu}%, ${result.serverLoad.maxMemory / 1024 / 1024}MiB, ${result.serverLoad.networkInput}MB, ${result.serverLoad.networkOutput}MB`
+                : "") +
+            (result.proxyLoad
+                ? `, ${result.proxyLoad.avgCpu}%, ${result.proxyLoad.avgMemory / 1024 / 1024}MiB, ${result.proxyLoad.maxCpu}%, ${result.proxyLoad.maxMemory / 1024 / 1024}MiB, ${result.proxyLoad.networkInput}MB, ${result.proxyLoad.networkOutput}MB`
+                : ""),
         );
     }
 
@@ -147,6 +153,19 @@ function checkEnvVars(names: string[]) {
             console.error(`[${new Date().toISOString()}] Environment variable '${name}' is not set.`);
             process.exit(1);
         }
+    }
+}
+
+function checkFilePath(filePath: string | undefined, name: string) {
+    if (filePath) {
+        try {
+            accessSync(filePath);
+        } catch (e) {
+            console.error(`[${new Date().toISOString()}] File '${filePath}' for ${name} does not exist or is not readable.`);
+            process.exit(1);
+        }
+    } else {
+        console.warn(`[${new Date().toISOString()}] No ${name} file provided.`);
     }
 }
 
