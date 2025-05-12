@@ -24,7 +24,8 @@ async function main() {
     // Loop over environment parameters and replace `{CWD}` with process.cwc().
     for (const key in process.env) {
         if (process.env[key]) {
-            process.env[key] = process.env[key].replace("{CWD}", process.cwd());
+            process.env[key] = process.env[key]?.replace("{CWD}", process.cwd());
+            process.env[key] = process.env[key]?.replace("{SERVER_HOSTNAME}", serverHostname);
         }
     }
 
