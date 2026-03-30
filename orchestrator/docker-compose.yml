@@ -45,6 +45,8 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - SERVER_HOSTNAME=${SERVER_HOSTNAME:-localhost}
+    volumes:
+      - ${SERVER_CONFIG_FILE:-./ldes-server/config-ldes.json}:/ldes-server/config-ldes.json
     healthcheck:
       test: "wget --server-response --spider --tries=1 http://localhost:3000 2>&1 | grep -E 'HTTP/1.1 (200|500)'"  # Check if the server is up and running, can return 200 or 500 (outside identifier space, okay here)
       interval: 30s
