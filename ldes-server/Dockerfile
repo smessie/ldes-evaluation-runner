@@ -2,7 +2,7 @@
 FROM node:lts-alpine
 
 # Set current working directory
-WORKDIR /ldes-solid-server
+WORKDIR /ldes-server
 
 # Copy configuration files
 COPY . .

@@ -1,7 +1,7 @@
 {
   "@context": [
-    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^7.0.0/components/context.jsonld",
-    "https://linkedsoftwaredependencies.org/bundles/npm/ldes-solid-server/^0.0.0/components/context.jsonld"
+    "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^8.0.0/components/context.jsonld",
+    "https://linkedsoftwaredependencies.org/bundles/npm/ldes-server/^0.0.0/components/context.jsonld"
   ],
   "import": [
     "css:config/app/main/default.json",
@@ -46,6 +46,25 @@
       }
     },
     {
+      "comment": "Prevents containers from being converted into markdown/html.",
+      "@id": "urn:solid-server:override:ContainerConversion",
+      "@type": "Override",
+      "overrideInstance": {
+        "@id": "urn:solid-server:default:ChainedConverter"
+      },
+      "overrideSteps": [
+        {
+          "@type": "OverrideListRemove",
+          "overrideParameter": {
+            "@id": "ChainedConverter:_converters"
+          },
+          "overrideTarget": {
+            "@id": "urn:solid-server:default:ContainerToTemplateConverter"
+          }
+        }
+      ]
+    },
+    {
       "@id": "urn:solid-server:default:RouterRule",
       "@type": "RegexRouterRule",
       "base": {
@@ -79,6 +98,8 @@
                 "@id": "urn:solid-server:default:relative-path"
               },
               "freshDuration": 30,
+              "withLDPMetadata": false,
+              "withSDSMetadata": true,
               "views": [
                 {
                   "@type": "PrefixView",
@@ -89,12 +110,15 @@
                       "@id": "urn:solid-server:default:view-url"
                     },
                     "streamId": "http://example.org/BenchmarkStream",
-                    "db": {
-                      "@id": "urn:solid-server:default:DBConfig"
+                    "repository": {
+                      "@id": "urn:solid-server:default:repository"
                     }
                   }
                 }
-              ]
+              ],
+              "namedGraphs": {
+                "@id": "urn:solid-server:default:named-graphs"
+              }
             },
             "options_outConverter": {
               "@id": "urn:solid-server:default:RepresentationConverter"
@@ -120,12 +144,14 @@
       }
     },
     {
-      "@id": "urn:solid-server:default:DBConfig",
-      "@type": "DBConfig",
+      "@id": "urn:solid-server:default:repository",
+      "@type": {
+        "@id": "urn:solid-server:default:db-type"
+      },
       "metaCollection": "METADATA",
       "indexCollection": "INDEX",
       "membersCollection": "DATA",
-      "dbUrl": {
+      "url": {
         "@id": "urn:solid-server:default:db-url"
       }
     },
@@ -138,11 +164,19 @@
       "@type": "Variable"
     },
     {
+      "@id": "urn:solid-server:default:db-type",
+      "@type": "Variable"
+    },
+    {
       "@id": "urn:solid-server:default:ldes-url",
       "@type": "Variable"
     },
     {
       "@id": "urn:solid-server:default:view-url",
+      "@type": "Variable"
+    },
+    {
+      "@id": "urn:solid-server:default:named-graphs",
       "@type": "Variable"
     }
   ]

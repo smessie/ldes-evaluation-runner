@@ -22,7 +22,7 @@ ex:BenchmarkStream
     sds:carries           [ a sds:Member ] ;
     sds:dataset           [ a                  dcat:Dataset ;
                             dcat:title         "LDES to benchmark" ;
-                            dcat:publisher     <http://solid.smessie.com/profile/card#me> ;
+                            dcat:publisher     <https://smessaert.be/#me> ;
                             ldes:timestampPath prov:generatedAtTime;
                             ldes:versionOfPath dct:isVersionOf;
                             dcat:identifier    <http://${SERVER_HOSTNAME}:3000/ldes> ] .

@@ -1,12 +1,12 @@
 {
-  "name": "ldes-solid-server",
+  "name": "ldes-server",
   "scripts": {
     "start": "node index.js -c ./config-ldes.json -b http://ldes-server:3000"
   },
   "type": "module",
   "main": "index.js",
   "dependencies": {
-    "@solid/community-server": "^7.1.5",
-    "ldes-solid-server": "^0.1.8"
+    "@solid/community-server": "^8.0.0-alpha.3",
+    "ldes-server": "^1.0.0-alpha.1"
   }
 }
