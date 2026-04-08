@@ -22,17 +22,7 @@ async function run(argv) {
         configValue = argv[configIndex + 1];
     }
 
-    const configs = [configValue];
-
-    if (process.env.REPOSITORY_CONFIG) {
-        const tempConfigPath = joinFilePath(__dirname, "temp-repository-config.jsonld");
-        writeFile(tempConfigPath, process.env.REPOSITORY_CONFIG, (err) => {
-            if (err) {
-                console.error("Error writing temporary repository config file:", err);
-            }
-        });
-        configs.push(tempConfigPath);
-    }
+    const configs = [configValue, './repository-config.json'];
 
     const app = await new AppRunner().create({
         argv: argv,

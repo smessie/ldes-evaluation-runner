@@ -1,0 +1,15 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/bundles/npm/ldes-server/^0.0.0/components/context.jsonld"
+  ],
+  "@graph": [
+    {
+      "@id": "urn:solid-server:default:repository",
+      "@type": "lss:dist/repositories/RedisRepository.jsonld#RedisRepository",
+      "metadata": "METADATA",
+      "data": "DATA",
+      "index": "INDEX",
+      "url": "redis://redis:6379"
+    }
+  ]
+}
