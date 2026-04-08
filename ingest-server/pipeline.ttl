@@ -71,7 +71,7 @@
                     rdfl:envKey "REPLICATION_DATA"
                   ].
 
-<logger> a rdfc:Log;
+<logger> a rdfc:LogProcessorJs;
     rdfc:reader <ldes-raw>;
     rdfc:level "debug";
     rdfc:label "input";
