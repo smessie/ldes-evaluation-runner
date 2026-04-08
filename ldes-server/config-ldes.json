@@ -146,9 +146,9 @@
     {
       "@id": "urn:solid-server:default:repository",
       "@type": "urn:solid-server:default:db-type",
-      "metadata": "METADATA",
-      "data": "DATA",
-      "index": "INDEX",
+      "lss:dist/repositories/RedisRepository.jsonld#RedisRepository__member_metadata": "METADATA",
+      "lss:dist/repositories/RedisRepository.jsonld#RedisRepository__member_data": "DATA",
+      "lss:dist/repositories/RedisRepository.jsonld#RedisRepository__member_index": "INDEX",
       "url": {
         "@id": "urn:solid-server:default:db-url"
       }
