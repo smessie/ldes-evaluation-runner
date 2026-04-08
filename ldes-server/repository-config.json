@@ -5,7 +5,7 @@
   "@graph": [
     {
       "@id": "urn:solid-server:default:repository",
-      "@type": "lss:dist/repositories/RedisRepository.jsonld#RedisRepository",
+      "@type": "RedisRepository",
       "metadata": "METADATA",
       "data": "DATA",
       "index": "INDEX",
