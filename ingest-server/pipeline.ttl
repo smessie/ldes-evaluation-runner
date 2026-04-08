@@ -41,7 +41,7 @@
 <> a rdfc:Pipeline;
    rdfc:consistsOf [
        rdfc:instantiates rdfc:NodeRunner;
-       rdfc:processor <fetcher>, <logger>, <mappingReader>, <validator>, <reporter>, <ingester>;
+       rdfc:processor <metadataReader>, <substitutor>, <reader>, <logger>, <bucketizer>, <ingester>;
    ].
 
 

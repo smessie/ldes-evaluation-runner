@@ -1,5 +1,5 @@
 # Start from a Node container
-FROM node:lts-alpine
+FROM node:lts
 
 # Setup working folder
 WORKDIR /opt/pipeline
