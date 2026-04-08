@@ -10,7 +10,7 @@ async function run(argv) {
     if (process.env.DATABASE_TYPE) {
         variableBindings["urn:solid-server:default:db-type"] = await instantiateFromConfig(
             process.env.DATABASE_TYPE,
-            ['ldes-server/node_modules/ldes-server/dist/repositories/MongoDBRepository.jsonld', 'ldes-server/node_modules/ldes-server/dist/repositories/RedisRepository.jsonld'],
+            ['node_modules/ldes-server/dist/repositories/MongoDBRepository.jsonld', 'node_modules/ldes-server/dist/repositories/RedisRepository.jsonld'],
             variableBindings,
         );
     }
