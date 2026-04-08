@@ -144,14 +144,6 @@
       }
     },
     {
-      "@id": "urn:solid-server:default:repository",
-      "@type": "urn:solid-server:default:db-type",
-      "metadata": "METADATA",
-      "data": "DATA",
-      "index": "INDEX",
-      "url": "redis://redis:6379"
-    },
-    {
       "@id": "urn:solid-server:default:relative-path",
       "valueRaw": "/ldes"
     },
