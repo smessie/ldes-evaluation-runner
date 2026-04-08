@@ -1,19 +1,8 @@
 import { AppRunner, joinFilePath } from "@solid/community-server";
-import { ComponentsManager } from "componentsjs";
+import { writeFile } from "node:fs";
 
 async function run(argv) {
     let variableBindings = {};
-    // Check if DATABASE_URL environment variable is set
-    if (process.env.DATABASE_URL) {
-        variableBindings["urn:solid-server:default:db-url"] = process.env.DATABASE_URL;
-    }
-    if (process.env.DATABASE_TYPE) {
-        variableBindings["urn:solid-server:default:db-type"] = await instantiateFromConfig(
-            process.env.DATABASE_TYPE,
-            ['node_modules/ldes-server/dist/repositories/MongoDBRepository.jsonld', 'node_modules/ldes-server/dist/repositories/RedisRepository.jsonld'],
-            variableBindings,
-        );
-    }
     if (process.env.SERVER_HOSTNAME) {
         variableBindings["urn:solid-server:default:ldes-url"] = `http://${process.env.SERVER_HOSTNAME}:3000/ldes`;
         variableBindings["urn:solid-server:default:view-url"] = `http://${process.env.SERVER_HOSTNAME}:3000/ldes/#fragmentation`;
@@ -33,42 +22,25 @@ async function run(argv) {
         configValue = argv[configIndex + 1];
     }
 
+    const configs = [configValue];
+
+    if (process.env.REPOSITORY_CONFIG) {
+        const tempConfigPath = joinFilePath(__dirname, "temp-repository-config.jsonld");
+        writeFile(tempConfigPath, process.env.REPOSITORY_CONFIG, (err) => {
+            if (err) {
+                console.error("Error writing temporary repository config file:", err);
+            }
+        });
+        configs.push(tempConfigPath);
+    }
+
     const app = await new AppRunner().create({
         argv: argv,
         variableBindings: variableBindings,
-        config: configValue,
+        config: configs,
     });
 
     await app.start();
-}
-
-/**
- * Returns a component instantiated from a Components.js configuration.
- *
- * Source: https://github.com/CommunitySolidServer/CommunitySolidServer/blob/ecd031e69f7c317ae03411c680682a1dcdff542e/test/integration/Config.ts#L11
- */
-export async function instantiateFromConfig(
-    componentUrl,
-    configPaths,
-    variables,
-) {
-    // Initialize the Components.js loader
-    const mainModulePath = joinFilePath(__dirname, '../../');
-    const manager = await ComponentsManager.build({
-        mainModulePath,
-        logLevel: 'error',
-        typeChecking: false,
-    });
-
-    if (!Array.isArray(configPaths)) {
-        configPaths = [ configPaths ];
-    }
-
-    // Instantiate the component from the config(s)
-    for (const configPath of configPaths) {
-        await manager.configRegistry.register(configPath);
-    }
-    return manager.instantiate(componentUrl, { variables });
 }
 
 run(process.argv).catch(console.error);
