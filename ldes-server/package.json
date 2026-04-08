@@ -7,6 +7,6 @@
   "main": "index.js",
   "dependencies": {
     "@solid/community-server": "^8.0.0-alpha.3",
-    "ldes-server": "^1.0.0-alpha.1"
+    "ldes-server": "^1.0.0-alpha.2"
   }
 }
