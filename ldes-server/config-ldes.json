@@ -145,9 +145,7 @@
     },
     {
       "@id": "urn:solid-server:default:repository",
-      "@type": {
-        "@id": "urn:solid-server:default:db-type"
-      },
+      "@type": "urn:solid-server:default:db-type",
       "metaCollection": "METADATA",
       "indexCollection": "INDEX",
       "membersCollection": "DATA",
