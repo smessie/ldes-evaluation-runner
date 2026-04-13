@@ -8,7 +8,7 @@ async function run(argv) {
         variableBindings["urn:solid-server:default:view-url"] = `http://${process.env.SERVER_HOSTNAME}:3000/ldes/#fragmentation`;
     }
     if (process.env.SERVER_NAMED_GRAPHS) {
-        variableBindings["urn:solid-server:default:named-graphs"] = process.env.SERVER_NAMED_GRAPHS;
+        variableBindings["urn:solid-server:default:named-graphs"] = process.env.SERVER_NAMED_GRAPHS === "true";
     }
 
     // Get -c or --config value
